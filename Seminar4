@@ -1,0 +1,20 @@
+# Seminar 4 - ECA
+
+pacheteECA<-c("knitr","rmarkdown", 
+              "tidyverse", 
+              "RColorBrewer", "scales", "readxl", "ggplot2","Rmisc",
+              "lattice","ggpubr","magrittr","GGally",
+              "zoo","xts",
+              "skimr",
+              "DataExplorer",
+              "PerformanceAnalytics",
+              "plyr","dplyr","stringr","reshape2",
+              "wordcloud","tidytext","tidyr", "radarchart","ellipsis")
+#install.packages(pacheteECA, dependencies = T)
+
+lapply(pacheteECA, library, character.only=T)
+
+setwd("C:/Users/Oana/OneDrive - Academia de Studii Economice din Bucuresti/Documents/ECA")
+library(readr)
+Sem <- read_csv("Seminar 4.csv")
+Seminar_4 <- read_excel("Seminar 4.xlsx")
