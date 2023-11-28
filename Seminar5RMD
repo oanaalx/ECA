@@ -1,0 +1,39 @@
+---
+title: "Seminar5"
+output: html_document
+date: "2023-10-24"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+pacheteECA<-c("knitr","rmarkdown", 
+              "tidyverse", 
+              "RColorBrewer", "scales", "readxl", "ggplot2","Rmisc",
+              "lattice","ggpubr","magrittr","GGally",
+              "zoo","xts",
+              "skimr",
+              "DataExplorer",
+              "PerformanceAnalytics",
+              "plyr","dplyr","stringr","reshape2",
+              "wordcloud","tidytext","tidyr", "radarchart","ellipsis")
+install.packages(pacheteECA, dependencies = T)
+lapply(pacheteECA, library, character.only=T)
+```
+
+
+```{r}
+setwd("C:/Users/Oana/OneDrive - Academia de Studii Economice din Bucuresti/Documents/ECA")
+```
+
+```{r}
+Seminar_4 <- read_xlsx("Seminar 4.xlsx")
+```
+
+View(Seminar_4)
+
+```{r}
+
+```
