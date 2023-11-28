@@ -1,0 +1,282 @@
+---
+title: "Seminar4"
+output: html_document
+date: "2023-10-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd("C:/Users/Oana/OneDrive - Academia de Studii Economice din Bucuresti/Documents/ECA")
+```
+
+```{r include=FALSE}
+pacheteECA<-c("knitr","rmarkdown", 
+              "tidyverse", 
+              "RColorBrewer", "scales", "readxl", "ggplot2","Rmisc",
+              "lattice","ggpubr","magrittr","GGally",
+              "zoo","xts",
+              "skimr",
+              "DataExplorer",
+              "PerformanceAnalytics",
+              "plyr","dplyr","stringr","reshape2",
+              "wordcloud","tidytext","tidyr", "radarchart","ellipsis")
+install.packages(pacheteECA, dependencies = T)
+```
+
+
+
+lapply(pacheteECA, library, character.only=T)
+
+```{r citire date}
+Seminar_4 <- read_xlsx("Seminar 4.xlsx")
+
+```
+
+
+```{r Pas 1}
+## cati respondenti au sistemul de gandire fast/slow dupa KT
+ Seminar_4 %>% 
+ dplyr::count("fast", Test_sistemKT)
+
+```
+## 13 respondenti sunt fast, 26 slow
+
+```{r}
+## test de rationalitate
+ Seminar_4 %>% 
+   dplyr::count("fast", Test_sistemgandire)
+
+```
+```{r Pas 2}
+## Ce sistem de gandire testat au respondentii care s-au declarat analitici?
+ Seminar_4 %>% 
+   dplyr::count("analitic", Test_sistemKT)
+
+```
+
+```{r}
+##analog pt intuitiv
+Seminar_4 %>% 
+  dplyr::count(grepl("intuitiv", Test_sistemKT))
+```
+```{r}
+## filtru dupa sistemul de gandire slow - intuitiv
+Seminar_4 %>% 
+  filter(Test_sistemKT=="slow") %>% 
+  dplyr::count("intuitiv", Tip_decident_perceptie)
+```
+
+```{r}
+## Cati decidenti de la KT cu sistem fast sunt la fel si la test sistem gandire
+Seminar_4 %>% 
+  dplyr::filter(Test_sistemKT=="fast") %>% 
+  dplyr::count("fast", Test_sistemgandire)
+```
+```{r Pas 3 Filtre si Grafice}
+# pt var sistem gandire KT reprezentati grafic
+Seminar_4 %>% 
+  ggplot()+
+  geom_bar(aes(x=Test_sistemKT))
+
+
+```
+```{r}
+# nu afisam NA-urile
+Seminar_4 %>% 
+  dplyr::filter(Test_sistemKT!="N/A") %>% 
+  ggplot()+
+  geom_bar(aes(x=Test_sistemKT))
+```
+
+```{r}
+# grafic pt sistemul de gandire
+Seminar_4 %>% 
+  dplyr::filter(Test_sistemgandire!="N/A") %>% 
+  ggplot()+
+  geom_bar(aes(x=Test_sistemgandire))
+```
+
+```{r}
+# statistici pt atitudinea testata
+Seminar_4 %>% 
+  dplyr::filter(Tip_atitudine_testata!="N/A") %>% 
+  group_by(Tip_atitudine_testata) %>% 
+  dplyr::summarize(n=n()) %>% 
+  ggplot()+
+  geom_col(aes(x=Tip_atitudine_testata, y=n))
+```
+## Observam ca 3 respondenti au aversiune EXTREMA si am vrea sa transformam raspunsul in AV_EXTREMA
+```{r}
+Seminar_4 %>% 
+  mutate(Tip_atitudine_testata=replace(Tip_atitudine_testata, Tip_atitudine_testata=="EXTREMA", "AV_EXTREMA")) %>% 
+  dplyr::filter(Tip_atitudine_testata!="N/A") %>%
+  group_by(Tip_atitudine_testata) %>%
+  dplyr::summarize(n=n()) %>% 
+  ggplot()+
+  geom_col(aes(x=Tip_atitudine_testata, y=n))+
+  scale_fill_brewer(palette = "Paired")
+```
+
+```{r Pas 4}
+## furnizam un grafic care sa ne arate distributia pe sisteme de gandire in functie de atitudinea la risc a decidentilor
+Seminar_4 %>% 
+  mutate(Tip_atitudine_testata=replace(Tip_atitudine_testata, Tip_atitudine_testata=="EXTREMA", "AV_EXTREMA")) %>% 
+  dplyr::filter(Tip_atitudine_testata!="N/A", Test_sistemKT!="N/A") %>%
+  group_by(Tip_atitudine_testata, Test_sistemKT) %>%
+  dplyr::summarize(n=n()) 
+  # ggplot()+
+  # geom_col(aes(x=Tip_atitudine_testata, y=n))+
+  # scale_fill_brewer(palette = "Paired")
+```
+```{r}
+## furnizam un grafic care sa ne arate distributia pe sisteme de gandire in functie de atitudinea la risc a decidentilor
+Seminar_4 %>% 
+  mutate(Tip_atitudine_testata=replace(Tip_atitudine_testata, Tip_atitudine_testata=="EXTREMA", "AV_EXTREMA")) %>% 
+  dplyr::filter(Tip_atitudine_testata!="N/A", Test_sistemKT!="N/A") %>%
+  group_by(Tip_atitudine_testata, Test_sistemKT) %>%
+  dplyr::summarize(n=n()) %>% 
+  ggplot(aes(x=Tip_atitudine_testata, y=n, fill=Test_sistemKT))+
+  geom_col()+
+  scale_fill_brewer(palette = "Paired")
+```
+#Pas 3
+# Grafic
+## reprezentati grafic atitudinea testata impreuna cu sistemul de gandire (kt si celalalt), dar ordonati dupa nr de raspunsuri inreg pt variabila atitudine testata
+```{r Grafic cu bar ordonat}
+Seminar_4 %>% 
+  mutate(Tip_atitudine_testata=replace(Tip_atitudine_testata, Tip_atitudine_testata=="EXTREMA", "AV_EXTREMA")) %>% 
+  dplyr::filter(Tip_atitudine_testata!="N/A", Test_sistemKT!="N/A") %>%
+  group_by(Tip_atitudine_testata, Test_sistemKT) %>%
+  dplyr::summarize(n=n()) %>% 
+  ggplot(aes(x=reorder(Tip_atitudine_testata,n), 
+             y=n, fill=Test_sistemKT))+
+  geom_col()+
+  scale_fill_brewer(palette = "Paired")
+```
+```{r}
+Seminar_4 %>% 
+  mutate(Tip_atitudine_testata=replace(Tip_atitudine_testata, Tip_atitudine_testata=="EXTREMA", "AV_EXTREMA")) %>% 
+  dplyr::filter(Tip_atitudine_testata!="N/A", Test_sistemgandire!="N/A") %>%
+  group_by(Tip_atitudine_testata, Test_sistemgandire) %>%
+  dplyr::summarize(n=n())
+  # ggplot(aes(x=reorder(Tip_atitudine_testata,n), 
+  #            y=n, fill=Test_sistemKT))+
+  # geom_col()+
+  # scale_fill_brewer(palette = "Paired")
+```
+```{r}
+Seminar_4 %>% 
+  mutate(Tip_atitudine_testata=replace(Tip_atitudine_testata, Tip_atitudine_testata=="EXTREMA", "AV_EXTREMA")) %>% 
+  dplyr::filter(Tip_atitudine_testata!="N/A", Test_sistemgandire!="N/A") %>%
+  group_by(Tip_atitudine_testata, Test_sistemgandire) %>%
+  dplyr::summarize(n=n()) %>% 
+  ggplot()+
+  geom_col(aes(x=reorder(Tip_atitudine_testata,n), 
+             y=n, fill=Test_sistemgandire))+
+  scale_fill_brewer(palette = "Set3")
+```
+```{r}
+##atitudinea testata vs atitudinea perceputa
+Seminar_4 %>% 
+  mutate(Tip_atitudine_testata=replace(Tip_atitudine_testata, Tip_atitudine_testata=="EXTREMA", "AV_EXTREMA")) %>% 
+  dplyr::filter(Tip_atitudine_testata!="N/A", Tip_atitudine_perceptie!="N/A") %>%
+  group_by(Tip_atitudine_testata, Tip_atitudine_perceptie) %>%
+  dplyr::summarize(n=n())  %>% 
+  ggplot()+
+  geom_col(aes(x=reorder(Tip_atitudine_testata,n),
+             y=n, fill=Tip_atitudine_perceptie))+
+  scale_fill_brewer(palette = "Set3")
+```
+# cei mai multi neutru - 13
+```{r pas 4 - pie chart}
+Seminar_4 %>% 
+  mutate(Tip_atitudine_testata=replace(Tip_atitudine_testata, Tip_atitudine_testata=="EXTREMA", "AV_EXTREMA")) %>% 
+  dplyr::filter(Tip_atitudine_testata!="N/A", Test_sistemKT!="N/A") %>%
+  group_by(Tip_atitudine_testata, Test_sistemKT) %>%
+  dplyr::summarize(n=n())  %>% 
+  ggplot()+
+  geom_col(aes(x=Tip_atitudine_testata, y=n, fill=Test_sistemKT))+
+  coord_polar(theta="y")+
+  scale_fill_brewer(palette = "Pastel2")
+  
+```
+```{r Pie chart separare} 
+##separam pie chart ul dupa nivelele de rasp ale variab atitudine testata
+Seminar_4 %>% 
+  mutate(Tip_atitudine_testata=replace(Tip_atitudine_testata, Tip_atitudine_testata=="EXTREMA", "AV_EXTREMA")) %>% 
+  dplyr::filter(Tip_atitudine_testata!="N/A", Test_sistemKT!="N/A") %>%
+  group_by(Tip_atitudine_testata, Test_sistemKT) %>%
+  dplyr::summarize(n=n())  %>% 
+  ggplot()+
+  geom_col(aes(x=Tip_atitudine_testata, y=n, fill=Test_sistemKT))+
+  coord_polar(theta="y")+
+  facet_wrap(~Tip_atitudine_testata)+
+  scale_fill_brewer(palette = "Pastel2")
+```
+```{r Pas 5 }
+## pt studentii grupati in cele doua sist de gandire, furnizati statistici
+Seminar_4 %>% 
+  filter(Test_sistemKT!="NA", Test_sistemgandire!="NA") %>% 
+  group_by(Test_sistemKT, Test_sistemgandire) %>% 
+  dplyr::summarise(n=n()) %>% 
+  mutate(Sistem_procent=n/sum(n))
+```
+
+##reprezentam gf ordonand desc dupa raspunsurile inregistrate la sistemul de gandire testat,analog pt tip de atitudine
+```{r}
+Seminar_4 %>% 
+  filter(Test_sistemKT!="NA") %>% 
+  group_by(Test_sistemKT) %>% 
+  dplyr::summarise(n=n()) %>% 
+  mutate(SistemKT_procent=n/sum(n)) %>% 
+  arrange(desc(SistemKT_procent)) %>% 
+  ggplot(aes(x=reorder(Test_sistemKT, n),
+             y=SistemKT_procent))+
+  geom_bar(stat="identity", fill="pink")+
+  coord_flip()+
+  geom_text(aes(y=SistemKT_procent, label=round(SistemKT_procent, 2)),
+            size=4,
+            hjust=-0.02)+
+  labs(x="Sistem gandire KT", y="Procent studenti CEC", caption="Experiment CEC, 2023")
+```
+```{r}
+# analog pt gradele de aversiune
+Seminar_4 %>% 
+  filter(Tip_atitudine_testata!="NA") %>% 
+  group_by(Tip_atitudine_testata) %>% 
+  dplyr::summarise(n=n()) %>% 
+  mutate(Atitudine_procent=n/sum(n)) %>% 
+  arrange(desc(Atitudine_procent)) %>% 
+  ggplot(aes(x=reorder(Tip_atitudine_testata, n),
+             y=Atitudine_procent))+
+  geom_bar(stat="identity", fill="lightblue")+
+  coord_flip()+
+  geom_text(aes(y=Atitudine_procent, label=round(Atitudine_procent, 2)),
+            size=4,
+            hjust=-0.07)+
+  labs(x="Atitudine testata", y="Procent studenti CEC", caption="Experiment CEC, 2023")
+```
+# analog putem face pt imaginea de la curs
+```{r}
+Seminar_4 %>% 
+  filter(Experiment_curs1!="NA") %>% 
+  mutate(Experiment_curs1=replace(Experiment_curs1, Experiment_curs1=="nervi", "nervoasa")) %>% 
+  group_by(Experiment_curs1) %>% 
+  dplyr::summarise(n=n()) %>% 
+  mutate(Experiment_procent=n/sum(n)) %>% 
+  
+  arrange(desc(Experiment_procent)) %>% 
+  ggplot(aes(x=reorder(Experiment_curs1, n),
+             y=Experiment_procent))+
+  geom_bar(stat="identity", fill="aquamarine")+
+  coord_flip()+
+  geom_text(aes(y=Experiment_procent, label=round(Experiment_procent, 2)),
+            size=4,
+            hjust=-0.07)+
+  labs(x="Experiment curs", y="Procent studenti CEC", caption="Experiment CEC, 2023")
+```
+
+
