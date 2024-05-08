@@ -1,0 +1,534 @@
+---
+title: "Alexandru_OanaMaria_tema2"
+output: html_document
+date: "2024-01-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Setare cale}
+setwd("C:/Users/Oana/OneDrive - Academia de Studii Economice din Bucuresti/Documents/ECA")
+```
+
+```{r Instalare pachete necesare}
+pacheteECA<-c("knitr","rmarkdown",
+              "tidyverse",
+              "RColorBrewer", "scales", "readxl", "ggplot2","Rmisc",
+              "lattice","ggpubr","magrittr","GGally",
+              "zoo","xts",
+              "skimr",
+              "DataExplorer",
+              "PerformanceAnalytics",
+              "plyr","dplyr","stringr","reshape2",
+              "wordcloud","tidytext","tidyr", "radarchart","ellipsis", "ggcorrplot")
+
+
+
+```
+lapply(pacheteECA, library, character.only=T)
+```{r}
+library(xts)
+library(zoo)
+library(PerformanceAnalytics)
+library(forecast)
+library(tseries)
+library(aTSA)
+```
+
+### Pentru brandurile alese la seminar, analizați informațiile pe care acestea le
+
+### furnizează dacă un investitor ar dori investirea într-una dintre acțiunile alese.
+
+### După analiza evoluției rentabilității acțiunilor alese, calculați valoarea actuală
+
+### a potențialei investiții la bursă și stabiliți dacă percepția asupra brandurilor
+
+### respective se schimbă.
+
+# Analiza Hermes, LVMH, Kering, Dior, France10Y si CAC40 - perioada 17 ianuarie 2022 - 30 decembrie 2023
+### LVMH - Louis Vuitton, Christian Dior
+### Kering - Gucci, Balenciaga, YSL
+### Hermes
+### Dior
+### CAC40 - indicele de piata
+### France10Y - activul fara risc
+
+```{r Incarcare date}
+
+date_tema2 <- read.csv("Date_Bursa_brand_2022_2023_1.csv")
+#head(date_tema2)
+#dim(date_tema2)
+date_tema2 <- date_tema2[,1:7]
+head(date_tema2)
+
+```
+
+```{r}
+
+date_tema2<-as.data.frame(date_tema2)
+class(date_tema2)
+summary(date_tema2)
+date_tema2=na.omit(date_tema2)
+summary(date_tema2)
+```
+
+### Transformam in serii de timp
+
+```{r}
+date_tema2 <- na.omit(date_tema2)
+preturi <- xts(date_tema2[,-1], order.by = as.Date(date_tema2[,1], format = "%d/%m/%Y"))
+
+#View(preturi)
+
+```
+
+### Transformam din serii de timp in rentabilitati
+
+```{r}
+
+rentabilitati <- CalculateReturns(preturi)
+summary(rentabilitati)
+
+#View(rentabilitati)
+rentabilitati=na.omit(rentabilitati)
+```
+
+### Calculam rentabilitatile medii
+
+```{r}
+
+rentab_medii <- round(colMeans(rentabilitati),6)
+
+rentab_medii
+```
+
+### Observam rentabilitatii medii cu valori negative in cazul Kering.
+
+###  Analizam evoluția activelor, a indicelui de piața și a activului fără risc pe perioada aleasă.
+
+```{r}
+
+#preturi <- na.omit(preturi)
+chart.RollingPerformance(rentabilitati$Hermes, Rf=0,  main = "Performanta Hermes in perioada 17/01/2022 - 30/12/2023", colorset = tim8equal)
+
+```
+
+### Observam o crestere mare a Hermes in august 2022, dar in august 2023 au fost inregistrate valori foarte mici.
+
+### Conform raportului de activitate a Hermes pe anul 2022, in al patrulea trimestru din acest an a fost inregistrat un record al vanzarilor, ajungand la o valoare de aproximativ 3 milioane de euro.
+
+### Performanta tuturor variabilelor alese
+
+```{r}
+
+chart.RollingPerformance(rentabilitati[,1:4], Rf = 0, main = "Performanta celor 4 actiuni in perioada 17/01/2022 - 30/12/2023", colorset = rich8equal, legend.loc = "topleft")
+
+
+```
+
+### Cea mai mare crestere o are in continuare Hermes, in august 2022. De asemenea, observam anumite cresteri pentru Kering, in noiembrie 2022, dar nu atat de notabile precum Hermes.
+
+### Analizam evolutia celor 4 actiuni impreuna cu indicele de piata
+
+```{r}
+
+
+chart.RollingPerformance(rentabilitati[,1:5],
+                         main="Performanta pentru 4 actiuni si CAC40 - 2022 - 2023",
+                         colorset=tim8equal,
+                         legend.loc="topleft")
+
+```
+
+### Cele 4 actiuni au fost peste indicele de piata, cele mai mari cresteri Hermes in august 2022
+
+### Analizam doar valorile negative
+
+```{r}
+
+chart.Drawdown(rentabilitati[,1:5], 
+               main ="Rentabilitati negative pt cele 4 actiuni si CAC40", 
+               legend.loc = "bottomleft")
+```
+
+### Observam ca actiunea Kering are cele mai mari variatii negative, potential de pierdere mare, dar si risc ridicat.
+
+### Celelalte actiuni urmeaza trendul indicelui de piata.
+
+## Analizam evolutia unui activ fata de indicele de piata CAC40
+
+### Evolutia Hermes
+
+```{r}
+
+chart.RelativePerformance(rentabilitati[,3], 
+                          rentabilitati[,5],
+                          main="Performanta relativa a actiunii Hermes fata de CAC40", 
+                          colorset = bluemono, 
+                          legend.loc = "bottomright")
+```
+
+## Facem si pt celelalte active
+
+```{r}
+
+chart.RelativePerformance(rentabilitati[,1:4], 
+                          rentabilitati[,5],
+                          main="Performanta relativa a tuturor activelor fata de CAC40", 
+                          legend.loc = "bottomleft")
+```
+
+### Observam ca avem variatii mai mari pt Hermes fata de CAC40 si mult mai mici pt Kering.
+
+### Grafic de performanta pentru cele 4 active, adaugand si activul fara risc in analiza
+
+```{r}
+
+charts.PerformanceSummary(rentabilitati[,1:5],
+                          Rf=rentabilitati$France10Y, 
+                          methods="StdDev", 
+                          main="Performanta actiunilor si a CAC40 fata de Rf",
+                          colorset=tim8equal,
+                          legend.loc = "topleft")
+```
+
+### Calculam rentabilitatile medii (vrem activul cu castigul maxim)
+
+```{r}
+
+rentab_medie=round(colMeans(rentabilitati[,1:5]), 6)
+rentab_medie 
+
+```
+
+### Hermes are cea mai mare rentabilitate medie - activul cu castig maxim
+
+### Toate actiunile au rentabilitati medii mai mari decat cea a indicelui de piata, în afara de Kering, care are rentabilitate negativa.
+
+### Calculam rentabilitatile medii lunare pe 2022 si 2023 pt Hermes
+
+```{r}
+
+
+t(table.CalendarReturns(rentabilitati$Hermes, digits=4))
+
+```
+
+### Observam ca cea mai mica rentabilitate lunara pt Hermes a fost inregistrata in decembrie 2022, urmata de valoarea din august 2022. In 2023, cea mai mica rentabilitate a fost inregistrata in luna mai, urmata de valoarea din august.
+
+### Per total, rentabilitatea medie anuala este pozitiva in ambii ani, cu o rentabilitate mult mai mare in 2022, de la 4.79 in 2022 la 0.53 in 2023.
+
+### Statistici descriptive
+
+```{r}
+
+table.Stats(rentabilitati[, 1:5],
+            ci=0.95, 
+            digits=6)
+# Stdev masura a riscului
+#  Destul de riscante toate, Hermes cea mai riscanta dar are castigul cel mai mare
+```
+
+### Calculati rata Sharpe si comparati, folosind Sharperatio
+
+### Rata Sharpe= raportul rentab / risc
+
+```{r}
+
+
+SharpeRatio(rentabilitati[,1:5],
+            Rf=0, 
+            p=0.95, 
+            FUN="StdDev")
+
+```
+
+### Rata Sharpe e cea mai mare pt Hermes, acest lucru semnificand ca are o performanta mai mare in cazul unei strategii de investitii.
+
+### Matricea de corelatie
+
+```{r}
+
+chart.Correlation(rentabilitati, 
+                  histogram=T)
+```
+
+### Cea mai mare corelatie este intre LVMH si Dior, Dior fiind inclus in indicele de piata LVMH si in CAC40.
+
+### Calculam riscurile specifice companiei si riscul de piata pentru cele 4 actiuni
+
+```{r}
+
+
+
+t(table.SpecificRisk(rentabilitati[,1:4],
+                     Rb=rentabilitati$CAC40,
+                     Rf=rentabilitati$France10Y, 
+                     digits = 4))
+```
+
+### Hermes are cel mai mare risc, un risc sistematic de 0.8236 la care se poate astepta un investitor.
+
+### Analiza investitiei initiale pe piata de capital si valoarea acesteia
+
+### Pornim de la 200.000 de euro (suma initiala de investit in nume personal) si vrem sa calculam valoarea acestei sume la momentul prezent, daca decidem sa investim in actiunea aleasa
+
+### Apoi, analizam valoarea actuala a unei investitii initiale de 5 milioane euro
+
+#### Pentru a calcula Time Value of Money (valoarea in timp a banilor) se foloseste media geometrica
+
+### Se foloseste un calcul al rentabilitatilor cumulate
+
+```{r}
+ 
+
+
+Return.cumulative(rentabilitati[,1:4],
+                  geometric = T)
+```
+
+### Calculam TVM pt 200.000 de euro investiti in Hermes, precum si in celelalte actiuni
+
+### Mai intai, vom testa sezonalitatea pentru Hermes si pt celelalte actiuni
+
+```{r}
+
+sez_Hermes <- monthplot(rentabilitati$Hermes, 
+          col="aquamarine3",
+          main="Sezonalitate lunara pentru Hermes") # seria nu are sezonalitate
+# Sezonalitatea pentru Kering
+sez_Kering <- monthplot(rentabilitati$Kering, 
+          col="aquamarine3",
+          main="Sezonalitate lunara pentru Kering") # nu are sezonalitate
+# Sezonalitatea pentru LVMH
+sez_LVMH <- monthplot(rentabilitati$LVMH, 
+          col="aquamarine3",
+          main="Sezonalitate lunara pentru LVMH") # nu are sezonalitate
+# Sezonalitatea pentru Dior
+sez_Dior <- monthplot(rentabilitati$Dior, 
+          col="aquamarine3",
+          main="Sezonalitate lunara pentru Dior") # nu are sezonalitate
+
+
+
+```
+
+```{r}
+val2_Hermes=200000*(Return.cumulative(rentabilitati$Hermes,geometric = T)) 
+val2_Hermes # castigul in prezent 
+TVM_Hermes = 200000 + val2_Hermes 
+TVM_Hermes
+```
+
+```{r}
+200000*Return.cumulative(rentabilitati[,1:4],
+                  geometric = T)
+
+```
+
+### Cea mai mare pierdere o are investitia in Kering si cel mai mare castig Hermes.
+
+#### Investitia pe 1 an, 2023
+
+```{r}
+ 
+Return.cumulative(rentabilitati[246:501,1:4],
+                  geometric = T)
+#rentab mult mai bune pt 2023
+```
+
+### Calculam TVM pt 200000 de euro investiti in fiecare dintre cele 4 actiuni - 2023
+
+```{r}
+
+val2023=200000*(Return.cumulative(rentabilitati[246:501,1:4],geometric = T))
+val2023 # Hermes
+TVM_2023= 200000 + val2023
+TVM_2023
+```
+
+### Daca suma de 200.000 de euro ar fi investita in 2023, cea mai profitabila investitie ar fi in brandul Hermes, avand o valoarea in timp a banilor de 258424.2 euro.Urmatoarea cea mai profitabila investitie ar fi in LVMH, cu o valoare in timp a banilor de 210653.3 euro.
+
+### Cea mai mare pierdere ar fi daca s-ar investi in Kering.
+
+### Calculam TVM pt 200000 de euro investiti in fiecare dintre cele 4 actiuni - 2022
+
+```{r}
+
+val2022=200000*(Return.cumulative(rentabilitati[1:245,1:4],geometric = T))
+val2022 # Hermes
+TVM_2022 = 200000 + val2022 
+TVM_2022
+```
+
+### La fel ca in anul 2023, daca s-ar investi 200.000 de euro in cele 4 actiuni, cea mai profitabila ar fi Hermes, cu o valoare in timp a banilor de 220817.8 euro. De asemenea, urmatoarea actiune profitabila ar fi Dior, cu o valoare in timp a banilor de 203074.7 euro.
+
+### Cea mai mare pierdere o va aduce investitia in Kering.
+
+### Calculam TVM pt 200.000 de euro investiti in fiecare dintre cele 4 actiuni - ambii ani
+
+```{r}
+
+val22_23=200000*(Return.cumulative(rentabilitati[,1:4],geometric = T))
+val22_23 # Hermes
+TVM_22_23 = 200000 + val22_23
+TVM_22_23
+```
+
+### Daca s-ar investi 200.000 de euro in perioada 2022-2023, investitia in Hermes ar aduce cele mai mari castiguri, cu o valoare in timp a banilor de 285323.4 euro, urmata de LVMH, cu o valoare in timp a banilor de 213752.9 euro. Cea mai mare pierdere este reprezentata de investitia in Kering.
+
+### Calculam TVM pt 5 milioane de euro investiti in Hermes, precum si in celelalte actiuni
+
+```{r}
+val21_Hermes=5000000*(Return.cumulative(rentabilitati$Hermes,geometric = T)) 
+val21_Hermes # castigul in prezent 
+TVM2_Hermes = 5000000 + val21_Hermes 
+TVM2_Hermes
+```
+```{r}
+5000000*Return.cumulative(rentabilitati[,1:4],
+                  geometric = T)
+```
+### Cel mai mare castig daca s-ar investi 5 milioane de euro il are LVMH si cea mai mare pierdere Kering.
+
+### Calculam TVM pt 5000000 de euro investiti in fiecare dintre cele 4 actiuni - 2023
+
+```{r}
+val2023_2=5000000*(Return.cumulative(rentabilitati[246:501,1:4],geometric = T))
+val2023_2 
+TVM_2023_2=5000000 + val2023_2
+TVM_2023_2
+```
+### Daca suma de 5 milioane de euro ar fi investita in 2023, cea mai mare valoare in timp a banilor ar fi adusa de Hermes.
+
+### Calculam TVM pt 5000000 de euro investiti in fiecare dintre cele 4 actiuni - 2022
+
+```{r}
+val2022_2=5000000*(Return.cumulative(rentabilitati[1:245,1:4],geometric = T))
+val2022_2 # Hermes
+TVM_2022_2 = 5000000 + val2022_2 
+TVM_2022_2
+```
+### La fel ca in anul 2023, in anul 2022, daca s-ar investi 5 milioane de euro in cele 4 actiuni, cea mai mare valoare a banilor ar fi pt Hermes.
+
+### Calculam TVM pt 5 milioane de euro investiti in fiecare dintre cele 4 actiuni - ambii ani
+```{r}
+val22_23_2=5000000*(Return.cumulative(rentabilitati[,1:4],geometric = T))
+val22_23_2 # Hermes
+TVM_22_23_2 = 5000000 + val22_23_2
+TVM_22_23_2
+```
+### Daca s-ar investi 5 milioane de euro in perioada 17 ianuarie 2022 - 30 decembrie 2023, din cele 4 actiuni, cea mai mare valoare a banilor este pentru Hermes, de 7,1 milioane de euro.
+
+
+
+### CAPM pt Hermes - evolutia activului pe o perioada analizata
+
+### a) Testati daca cele 2 serii de timp sunt stationare si detectati sezonalitatea din date
+
+### Detectam sezonalitatea
+
+```{r}
+
+monthplot(rentabilitati$Hermes, 
+          col="aquamarine3",
+          main="Sezonalitate lunara pentru Hermes")
+```
+
+### Studiem stationaritatea pentru Hermes si CAC40
+
+```{r}
+
+
+adf.test(rentabilitati$Hermes)
+# Seria este stationara, p-value<=0.05
+
+adf.test(rentabilitati$CAC40) # stationara
+
+adf.test(rentabilitati$France10Y)
+
+```
+
+### Conform p-value, toate cele 3 serii sunt stationare.
+
+```{r}
+tsdisplay(rentabilitati$Hermes, 
+          main="Seria stationara Hermes", 
+          col="aquamarine3")
+```
+
+```{r}
+tsdisplay(rentabilitati$CAC40, 
+          main="Seria stationara CAC40", 
+          col="aquamarine3")
+```
+
+### Varianta 2 - Regresie cu PerformanceAnalytics
+
+```{r}
+
+
+chart.Regression(rentabilitati[,3,drop=F], 
+                 rentabilitati[,5,drop=F], 
+                 Rf=0, 
+                 main="SFM pentru Hermes", 
+                 fit=c("linear"), 
+                 col="purple") # Single Factor Model
+# Return of Assets - rentabilitatea activului
+```
+
+```{r}
+table.SFM(Ra=rentabilitati[,3, drop=F],
+          Rb=rentabilitati[,5,drop=F], 
+          Rf=0, 
+          digits = 4)
+
+```
+
+### Beta = 1.2387 > 1, acest lucru indica faptul ca titlul este usor agresiv.
+
+### Includem rf in analiza - activul fara risc
+
+```{r}
+ 
+chart.Regression(rentabilitati[,3,drop=F], 
+                 rentabilitati[,5,drop=F], 
+                 Rf=rentabilitati$France10Y, 
+                 excess.returns = T, 
+                 fit=c("linear"),
+                 col="blue", 
+                 main="Index model: Hermes")
+```
+
+### Folosim volatilitatea calculata cu Index Model pt a previziona rentabilitatea activului cu CAPM
+
+### Obtinem tabelul CAPM
+
+```{r}
+
+
+table.CAPM(Ra=rentabilitati$Hermes, 
+           Rb=rentabilitati$CAC40, 
+           Rf=rentabilitati$France10Y, 
+           scale=236, 
+           digits=4)
+
+```
+
+### Calculam rentabilitatea previzionata folosind CAPM
+
+```{r}
+
+Hermes_CAPM= mean(rentabilitati$France10Y)+(CAPM.beta(Ra=rentabilitati[,3], 
+                               Rb=rentabilitati[,3], 
+                               Rf=rentabilitati$France10Y))*mean(rentabilitati[,3]-rentabilitati$France10Y)
+Hermes_CAPM 
+```
+
+### Este previzionata o crestere a rentabilitatii, de 8.9%.
+
+### Concluzii
+### Am prezentat anexa celor doi decidenti, iar in urma rezultatelor, s-au decis sa investeasca in Hermes, dupa ce, initial, si-au dorit sa investeasca in Rolex. 
+### Acestia au acordat note destul de mari pentru Hermes, AO01 a acordat nota 7, iar AO02 a acordat nota 10.

@@ -1,0 +1,1545 @@
+---
+title: "Alexandru Oana Maria - Economie Comportamentala Aplicată - Tema 1"
+output:
+  html_document: default
+  pdf_document: default
+date: "2023-12-27"
+---
+
+# **Descrierea decidenților**
+
+**AO**: Sunt o persoană muncitoare, ambițioasă, foarte atentă la detalii și dispusă să iasă din zona de confort. Îmi place să dețin controlul în diferite situații, fiind genul de persoană care analizează mult pentru a nu fi surprinsă de rezultate negative.
+
+**AO01**: O persoană căreia îi place să vorbească foarte mult, muncitoare și organizată. Este o fire analitică, căreia îi place să descopere și să învețe lucruri noi. Din cauza capacității sale de analiză, tinde să se îngrijoreze foarte mult, uitând să se concentreze asupra prezentului.
+
+**AO02**: O persoană introvertită, căreia îi place mai mult să asculte decât să vorbească, atunci când se află în diferite situații sociale. Cu toate acestea, este o persoană spontană, curioasă și dispusă să descopere lucruri noi.
+
+Pe parcursul analizei, am avut în vedere noțiunile de Economie Comportamentală predate, referitoare la **sistemele de gândire (fast și slow)** și **aversiunea la risc**.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Setare cale}
+setwd("C:/Users/Oana/OneDrive - Academia de Studii Economice din Bucuresti/Documents/ECA")
+```
+
+```{r Instalare pachete necesare}
+pacheteECA<-c("knitr","rmarkdown",
+              "tidyverse",
+              "RColorBrewer", "scales", "readxl", "ggplot2","Rmisc",
+              "lattice","ggpubr","magrittr","GGally",
+              "zoo","xts",
+              "skimr",
+              "DataExplorer",
+              "PerformanceAnalytics",
+              "plyr","dplyr","stringr","reshape2",
+              "wordcloud","tidytext","tidyr", "radarchart","ellipsis", "ggcorrplot")
+
+
+lapply(pacheteECA, library, character.only=T)
+```
+
+
+
+```{r Incarcare date}
+date_tema1 <- read_xlsx("Date_Tema1.xlsx")
+
+```
+
+### *Statistici inițiale*
+
+#### **Determinati câți respondenți au sistemul de gândire fast/slow.**
+
+```{r}
+date_tema1 %>% 
+  dplyr::count("fast", Test_sistemKT)
+```
+
+#### *Dintre cei 112 respondenți, conform Test_sistemKT, 42 se încadrează în sistemul de gândire fast, 70 în sistemul de gândire slow.*
+
+#### Afișăm aceleași informații pentru mine și cei doi decidenți.
+
+```{r}
+date_tema1 %>% 
+  select(ID, Test_sistemKT) %>% 
+  filter(ID=="AO"| ID=="AO01" | ID=="AO02" )
+```
+
+#### *Conform Test_sistemKT, doi dintre cei trei decidenți(AO și AO02) au un sistem de gândire fast, iar celălalt decident are un sistem de gândire slow (AO01).*
+
+```{r}
+# Test de rationalitate
+date_tema1 %>% 
+  dplyr::count("fast", Test_sistemgandire)
+```
+
+#### *Conform Test_sistemgandire, 34 respondenți au o gândire intuitivă(fast), în timp ce 78 dintre respondenți au o gândire rațională(slow).*
+
+#### Afișăm aceleași informații pt mine și cei doi decidenți.
+
+```{r}
+date_tema1 %>% 
+  select(ID, Test_sistemgandire) %>% 
+  filter(ID=="AO"| ID=="AO01" | ID=="AO02" )
+```
+
+#### *Au fost obținute aceleași rezultate precum Test_sistemKT.*
+
+#### Determinați câți decidenți se identifică cu tipul de gândire analitic și câți se identifică cu tipul de gândire intuitiv.
+
+```{r}
+date_tema1 %>% 
+  dplyr::count("analitic", Tip_decident_perceptie)
+```
+
+#### *Conform Tip_decident_perceptie, dintre cei 112 respondenți, 77 se identifică cu tipul de gândire analitic și 35 cu tipul de gândire intuitiv.*
+
+#### Aceleași informații pt mine și decidenții mei.
+
+```{r}
+date_tema1 %>% 
+  select(ID, Tip_decident_perceptie) %>% 
+  filter(ID=="AO"| ID=="AO01" | ID=="AO02" )
+```
+
+#### *Conform Tip_decident_perceptie, 2 decidenți se identifică drept analitici (AO și AO01), iar celălalt se identifică drept intuitiv(AO02).*
+
+#### Percepția atitudinii față de risc
+
+```{r}
+date_tema1 %>% 
+  dplyr::count("neutru", Tip_atitudine_perceptie)
+```
+
+#### *Conform Tip_atitudine_perceptie, dintre cei 112 respondenți, 32 se declară ca fiind averși la risc, 7 cu înclinație la risc, iar 73 au o atitudine neutră față de risc.*
+
+#### Aceleași informații pt mine și cei doi decidenți.
+
+```{r}
+date_tema1 %>% 
+  select(ID, Tip_atitudine_perceptie) %>% 
+  filter(ID=="AO"| ID=="AO01" | ID=="AO02" )
+```
+
+#### *Conform Tip_atitudine_perceptie, doi dintre cei 3 decidenți (AO01 și AO02) se identifică cu o atitudine neutră față de risc, în timp ce celălalt decident (AO) se identifică cu aversiune la risc.*
+
+#### Determinați câți dintre respondenții cu un sistem de gândire slow (rațional) sunt și averși la risc. Analog pentru celălalt sistem. . Folosiți ambele teste precum și variabilele atitudine testată și atitudine percepută.
+
+```{r}
+# Test_sistemKT - slow
+date_tema1 %>% 
+  dplyr::filter(Test_sistemKT == "slow")%>%
+  dplyr::count("aversiune",Tip_atitudine_perceptie)
+```
+
+#### *Dintre decidenții cu sistemul de gândire slow, 19 prezintă aversiune la risc, 2 înclinație la risc, iar 49 au o atitudine neutră la risc.*
+
+```{r}
+# Test_sistemKT - fast
+date_tema1 %>% 
+  dplyr::filter(Test_sistemKT == "fast")%>%
+  dplyr::count("aversiune",Tip_atitudine_perceptie)
+```
+
+#### *Dintre decidenții cu sistemul de gândire fast, 13 prezintă aversiune la risc, 5 înclinație la risc, iar 24 au o atitudine neutră față de risc.*
+
+```{r}
+# Tip_atitudine_testata - slow
+date_tema1 %>% 
+  dplyr::filter(Test_sistemKT == "slow")%>%
+  dplyr::count("aversiune",Tip_atitudine_testata)
+```
+
+#### *Dintre decidenții cu sistemul de gândire slow, conform Tip_atitudine_testata, 3 decidenți au aversiune extremă la risc, 14 au o aversiune foarte mare, 42 au o aversiune medie, iar 10 decidenți au o aversiune mica la risc.*
+
+```{r}
+# Tip_atitudine_testata - fast
+date_tema1 %>% 
+  dplyr::filter(Test_sistemKT == "fast")%>%
+  dplyr::count("aversiune",Tip_atitudine_testata)
+```
+
+#### *Dintre decidenții cu sistemul de gândire fast, conform Tip_atitudine_testata, 3 decidenți au aversiune extremă la risc, 10 au o aversiune foarte mare, 1 decident are o aversiune foarte mica la risc, 21 o aversiune medie, iar 7 au o aversiune mică.*
+
+#### Pentru variabilele reprezentate de Sistemul de gândire (ambele teste) și Atitudinea față de risc testată, aplicați câteva filtre, agregați datele și determinați diferențele ce apar între atitudinea față de risc percepută și cea testată în funcție de sistemul de gândire. Reprezentați grafic (mai multe tipuri de grafice) distribuțiile sistemelor de gândire și distribuția atitudinii față de risc (percepută față de cea testată).
+
+```{r}
+date_tema1 %>%
+  filter(Test_sistemKT != "")%>%
+  ggplot()+
+  geom_bar(aes(x=Test_sistemKT), fill="aquamarine4")
+```
+
+#### *Se observa faptul ca sistemul majoritar este cel slow.*
+
+```{r}
+date_tema1 %>%
+  filter(Tip_atitudine_perceptie != "")%>%
+  ggplot()+
+  geom_bar(aes(x=Tip_atitudine_perceptie), fill="lightblue")
+```
+
+#### *Se poate observa ca cei mai multi decidenti au o atitudine neutra la risc, urmati de cei cu aversiune la risc, cei mai putini fiind cei cu inclinatie la risc.*
+
+```{r}
+date_tema1 %>%
+  filter(Tip_atitudine_testata != "")%>%
+  ggplot()+
+  geom_bar(aes(x=Tip_atitudine_testata), fill="pink")
+```
+
+#### *In urma testarii nivelului de aversiune fata de risc, a rezultat faptul ca cei mai multi respondenti prezinta o aversiune medie la risc.*
+
+#### Distributia pe sisteme de gandire in functie de atitudinea la risc testata a decidentilor.
+
+```{r}
+date_tema1 %>% 
+  group_by(Tip_atitudine_testata, Test_sistemKT) %>%
+  dplyr::summarize(n=n()) %>% 
+  ggplot(aes(x=Tip_atitudine_testata, y=n, fill=Test_sistemKT))+
+  geom_col()+
+  scale_fill_brewer(palette = "Paired")
+
+```
+
+```{r}
+date_tema1 %>% 
+  group_by(Tip_atitudine_testata, Test_sistemgandire) %>%
+  dplyr::summarize(n=n()) %>% 
+  ggplot(aes(x=Tip_atitudine_testata, y=n, fill=Test_sistemgandire))+
+  geom_col()+
+  scale_fill_brewer(palette = "Paired")
+```
+
+#### *Observam ca majoritatea respondentilor fac parte din sistemul de gandire slow.*
+
+#### Distributia atitudinii percepute in functie de sistemul de gandire.
+
+```{r}
+date_tema1 %>%
+  group_by(Tip_atitudine_perceptie, Test_sistemKT) %>% 
+  dplyr::summarise(n=n()) %>% 
+  ggplot(aes(x=Tip_atitudine_perceptie, y= n, fill = Test_sistemKT))+
+  geom_col()+
+  scale_fill_brewer(palette = "RdPu")
+```
+
+```{r}
+date_tema1 %>%
+  group_by(Tip_atitudine_perceptie, Test_sistemgandire) %>% 
+  dplyr::summarise(n=n()) %>% 
+  ggplot(aes(x=Tip_atitudine_perceptie, y= n, fill = Test_sistemgandire))+
+  geom_col()+
+  scale_fill_brewer(palette = "RdPu")
+```
+
+#### *Cei mai multi respondenti fac parte din sistemul de gandire slow.*
+
+#### Pentru studenții grupați în cele două sisteme de gândire, furnizați statistici calculând procente și reprezentați grafic. Analog și pentru gradul de aversiune la risc.
+
+#### Calcularea frecventelor sistem de gandire in urma Test_sistemKT
+
+```{r}
+date_tema1 %>% 
+  group_by(Test_sistemKT) %>% 
+  dplyr::summarise(n=n()) %>% 
+  mutate(Frecv_sistem = 100*n/sum(n)) %>% 
+  arrange(desc(Frecv_sistem)) 
+```
+
+#### *62.5% dintre respondenti au sistemul de gandire slow, iar 37.5% au sistemul de gandire fast.*
+
+#### Reprezentare grafica frecvente
+
+```{r}
+date_tema1 %>% 
+  group_by(Test_sistemKT) %>% 
+  dplyr::summarise(n=n()) %>% 
+  mutate(Frecv_sistem = 100*n/sum(n)) %>% 
+  arrange(desc(Frecv_sistem)) %>% 
+  ggplot(aes(x=reorder(Test_sistemKT, n), y= Frecv_sistem))+
+  geom_bar(stat = "identity", fill="lightgreen")+
+  coord_flip()+
+  labs(x = "Sistem de gandire", y = "Procent respondenti", caption = "Test_sistemKT")
+```
+
+#### Calcularea frecventelor sistem de gandire in urma Test_sistemgandire
+
+```{r}
+date_tema1 %>% 
+  group_by(Test_sistemgandire) %>% 
+  dplyr::summarise(n=n()) %>% 
+  mutate(Frecv_sistem = 100*n/sum(n)) %>% 
+  arrange(desc(Frecv_sistem))
+```
+
+#### *69.64% fac parte din sistemul de gandire slow, iar 30.36% din sistemul de gandire fast.*
+
+#### Reprezentare grafica frecvente
+
+```{r}
+date_tema1 %>% 
+  group_by(Test_sistemgandire) %>% 
+  dplyr::summarise(n=n()) %>% 
+  mutate(Frecv_sistem = 100*n/sum(n)) %>% 
+  arrange(desc(Frecv_sistem)) %>% 
+  ggplot(aes(x=reorder(Test_sistemgandire, n), y= Frecv_sistem))+
+  geom_bar(stat = "identity", fill="pink")+
+  coord_flip()+
+  labs(x = "Sistem de gandire", y = "Procent respondenti", caption = "Test_sistemgandire")
+```
+
+#### Calcul frecvente Tip_atitudine_perceptie
+
+```{r}
+date_tema1 %>% 
+  group_by(Tip_atitudine_perceptie) %>% 
+  dplyr::summarise(n=n()) %>% 
+  mutate(Frecv_sistem = 100*n/sum(n)) %>% 
+  arrange(desc(Frecv_sistem)) 
+```
+
+#### *65.18% dintre respondenti au o atitudine neutra la risc, 28.57% prezinta aversiune la risc, iar 6.25% prezinta inclinatie la risc.*
+
+#### Reprezentare grafica frecvente
+
+```{r}
+date_tema1 %>% 
+  group_by(Tip_atitudine_perceptie) %>% 
+  dplyr::summarise(n=n()) %>% 
+  mutate(Frecv_sistem = 100*n/sum(n)) %>% 
+  arrange(desc(Frecv_sistem)) %>% 
+  ggplot(aes(x=reorder(Tip_atitudine_perceptie, n), y= Frecv_sistem))+
+  geom_bar(stat = "identity", fill="blue")+
+  coord_flip()+
+  labs(x = "Sistem de gandire", y = "Procent respondenti", caption = "Tip_atitudine_perceptie")
+```
+
+#### Calcul frecvente Tip_atitudine_testata
+
+```{r}
+date_tema1 %>% 
+  group_by(Tip_atitudine_testata) %>% 
+  dplyr::summarise(n=n()) %>% 
+  mutate(Frecv_sistem = 100*n/sum(n)) %>% 
+  arrange(desc(Frecv_sistem))
+```
+
+#### *56.25% aversiune medie la risc, 21.43% aversiune foarte mare la risc, 15.18% aversiune mica, 6.25% aversiune extrema, iar 0.89% aversiune foarte mica la risc.*
+
+#### Reprezentare grafica frecvente
+
+```{r}
+date_tema1 %>% 
+  group_by(Tip_atitudine_testata) %>% 
+  dplyr::summarise(n=n()) %>% 
+  mutate(Frecv_sistem = 100*n/sum(n)) %>% 
+  arrange(desc(Frecv_sistem)) %>% 
+  ggplot(aes(x=reorder(Tip_atitudine_testata, n), y= Frecv_sistem))+
+  geom_bar(stat = "identity", fill="darkviolet")+
+  coord_flip()+
+  labs(x = "Sistem de gandire", y = "Procent respondenti", caption = "Tip_atitudine_testata")
+```
+
+# Analiza caracteristicilor decidentilor
+
+#### Afisam respondentii care au acordat o nota mai mare de 5 in cadrul Q2.
+
+#### a) I am a very relaxed person
+
+```{r}
+date_tema1 %>% 
+  filter(Q2A!="N/A") %>% 
+  filter(Q2A>=5) %>% 
+  dplyr::summarise(n=n())
+
+```
+
+#### *86 de persoane din 112 se considera relaxate.*
+
+#### b) I worry too much
+
+```{r}
+date_tema1 %>% 
+  filter(Q2B!="N/A") %>% 
+  filter(Q2B>=5) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *90 de persoane din 112 se ingrijoreaza prea mult.*
+
+#### c) I consider myself a caring person
+
+```{r}
+date_tema1 %>% 
+  filter(Q2C!="N/A") %>% 
+  filter(Q2C>=5) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *104 persoane din 112 considera ca sunt grijulii.*
+
+#### d) I am a hard worker
+
+```{r}
+date_tema1 %>% 
+  filter(Q2D!="N/A") %>% 
+  filter(Q2D>=5) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *109 persoane din 112 se considera niste persoane foarte muncitoare.*
+
+#### e) I am, in general, a serious person
+
+```{r}
+date_tema1 %>% 
+  filter(Q2E!="N/A") %>% 
+  filter(Q2E>=5) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *103 persoane din 112 sunt serioase, in general.*
+
+#### f) I pay attention to details
+
+```{r}
+date_tema1 %>% 
+  filter(Q2F!="N/A") %>% 
+  filter(Q2F>=5) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *108 persoane din 112 sunt atente la detalii.*
+
+#### g) I respect deadlines
+
+```{r}
+date_tema1 %>% 
+  filter(Q2G!="N/A") %>% 
+  filter(Q2G>=5) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *106 persoane din 112 respecta termenele limita.*
+
+#### h) I am happy
+
+```{r}
+date_tema1 %>% 
+  filter(Q2H!="N/A") %>% 
+  filter(Q2H>=5) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *106 persoane din 112 sunt fericite :)*
+
+#### i) I love to talk
+
+```{r}
+date_tema1 %>% 
+  filter(Q2I!="N/A") %>% 
+  filter(Q2I>=5) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *Din 112 persoane, 102 persoane iubesc sa vorbeasca.*
+
+#### j) I love meeting new people
+
+```{r}
+date_tema1 %>% 
+  filter(Q2J!="N/A") %>% 
+  filter(Q2J>=5) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *98 persoane din 112 iubesc sa cunoasca oameni noi.*
+
+#### k) I like to study new things
+
+```{r}
+date_tema1 %>% 
+  filter(Q2K!="N/A") %>% 
+  filter(Q2K>=5) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *109 persoane din 112 iubesc sa studieze lucruri noi.*
+
+#### l) I enjoy art
+
+```{r}
+date_tema1 %>% 
+  filter(Q2L!="N/A") %>% 
+  filter(Q2L>=5) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *96 persoane din 112 arata interes pentru arta.*
+
+#### m) I am a calm person
+
+```{r}
+date_tema1 %>% 
+  filter(Q2M!="N/A") %>% 
+  filter(Q2M>=5) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *94 persoane din 112 sunt calme.*
+
+#### n) I like to solve intelligence quizzes, math problems, enigmas, etc.
+
+```{r}
+date_tema1 %>% 
+  filter(Q2N!="N/A") %>% 
+  filter(Q2N>=5) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *100 persoane din 112 arata interes pentru rezolvarea testelor de inteligenta, problemelor de matematica, etc.*
+
+#### Calculati o medie a notelor date la intrebarile de mai sus, furnizati histograme, comentati.
+
+```{r}
+date_tema1 %>% 
+    filter(!is.na(Q2A), !is.na(Q2B), !is.na(Q2C), !is.na(Q2D), !is.na(Q2E), !is.na(Q2F), !is.na(Q2G), !is.na(Q2H), !is.na(Q2I), !is.na(Q2J), !is.na(Q2K), !is.na(Q2L), !is.na(Q2M), !is.na(Q2N)) %>%
+  dplyr::summarise(medieQ2A=mean(Q2A), 
+                   medieQ2B=mean(Q2B), 
+                   medieQ2C=mean(Q2C), 
+                   medieQ2D=mean(Q2D), 
+                   medieQ2E=mean(Q2E),
+                   medieQ2F=mean(Q2F),
+                   medieQ2G=mean(Q2G),
+                   medieQ2H=mean(Q2H),
+                   medieQ2I=mean(Q2I),
+                   medieQ2J=mean(Q2J),
+                   medieQ2K=mean(Q2K),
+                   medieQ2L=mean(Q2L),
+                   medieQ2M=mean(Q2M),
+                   medieQ2N=mean(Q2N))
+```
+
+#### *Cea mai mare medie inregistrata (8.35) a fost in cazul intrebarii G, referitoare la respectarea termenelor limita, urmata de intrebarea C (8.27), referitoare la persoanele care se considera grijulii si de intrebarea F (8.15), referitoare la atentia la detalii a persoanelor.*
+
+### Histograme
+
+#Q2A
+
+```{r}
+hist_Q2A <- date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q2A), color="purple", fill="aquamarine3", na.rm = TRUE, binwidth = 1) +
+  labs(x="I am a very relaxed person")
+
+
+# Q2B
+hist_Q2B <-date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q2B), color="purple",fill="pink", na.rm = TRUE, binwidth = 1) +
+  labs(x="I worry too much")
+
+#Q2C
+hist_Q2C <-date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q2C), color="purple", fill="lightblue", na.rm = TRUE, binwidth = 1) +
+  labs(x="I consider myself a caring person")
+
+#Q2D
+hist_Q2D <-date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q2D), color="purple", fill="orchid3", na.rm = TRUE, binwidth = 1) +
+  labs(x="I am a hard worker")
+
+#Q2E
+hist_Q2E <-date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q2E), color="purple", fill="maroon2", na.rm = TRUE, binwidth = 1) +
+  labs(x="I am, in general, a serious person")
+
+#Q2F
+hist_Q2F <-date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q2F), color="purple", fill="salmon2", na.rm = TRUE, binwidth = 1) +
+  labs(x="I pay attention to details")
+
+#Q2G
+hist_Q2G <-date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q2G), color="purple", fill="violetred", na.rm = TRUE, binwidth = 1) +
+  labs(x="I respect deadlines")
+
+#Q2H
+hist_Q2H <-date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q2H), color="purple", fill="plum1", na.rm = TRUE, binwidth = 1) +
+  labs(x="I am happy")
+
+#Q2I
+hist_Q2I <-date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q2I), color="purple", fill="royalblue1", na.rm = TRUE, binwidth = 1) +
+  labs(x="I love to talk")
+
+#Q2J
+hist_Q2J <-date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q2J), color="purple", fill="lightcoral", na.rm = TRUE, binwidth = 1) +
+  labs(x="I love meeting new people")
+
+#Q2K
+hist_Q2K <-date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q2K), color="purple", fill="mediumaquamarine", na.rm = TRUE, binwidth = 1) +
+  labs(x="I like to study new things")
+
+#Q2L
+hist_Q2L <-date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q2L), color="purple", fill="hotpink4", na.rm = TRUE, binwidth = 1) +
+  labs(x="I enjoy art")
+
+#Q2M
+hist_Q2M <-date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q2M), color="purple", fill="olivedrab4", na.rm = TRUE, binwidth = 1) +
+  labs(x="I am a calm person")
+
+#Q2N
+hist_Q2N <-date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q2N), color="purple", fill="lightgoldenrod2", na.rm = TRUE, binwidth = 1) +
+  labs(x="I like to solve intelligence quizzes, math problems, enigmas, etc.")
+
+# Toate histogramele intr-un grafic
+ggarrange(hist_Q2A,hist_Q2B,hist_Q2C,hist_Q2D,hist_Q2E,hist_Q2F,hist_Q2G,hist_Q2H,hist_Q2I,hist_Q2J,hist_Q2K,hist_Q2L,hist_Q2M,hist_Q2N)
+
+```
+
+#### *Seria Q2A prezinta o distributie normala*
+
+#### *Avem cele mai multe note de 7*
+
+#### *Seria Q2B prezinta asimetrie la dreapta*
+
+#### *Avem cele mai multe note de 6*
+
+#### *Seria Q2C prezinta asimetrie la stanga*
+
+#### *Avem cele mai multe note de 8 si 9*
+
+#### *In seria Q2D, avem un outlier, cele mai multe note sunt de 8*
+
+#### *In seria Q2E, avem outlieri, cele mai multe note au fost de 8*
+
+#### *Seria Q2F prezinta asimetrie la dreapta, cele mai multe note sunt de 8*
+
+#### *Seria Q2G prezinta asimetrie la stanga, avem outlieri, cele mai multe note sunt de 9*
+
+#### *Seria Q2H prezinta asimetrie la stanga, avem outlieri, cele mai multe note sunt de 9*
+
+#### *Seria Q2I prezinta asimetrie la stanga, cele mai multe note sunt de 7*
+
+#### *Seria Q2J prezinta asimetrie la stanga, cele mai multe note sunt de 7*
+
+#### *Seria Q2K prezinta asimetrie la stanga, avem outlieri, cele mai multe note sunt de 8*
+
+#### *Seria Q2L prezinta asimetrie la stanga, cele mai multe note sunt de 8*
+
+#### *Seria Q2M are o distributie normala, cele mai multe note sunt de 6*
+
+#### *Seria Q2N prezinta asimetrie la stanga, cele mai multe note sunt de 7*
+
+#### Realizați o împărțire a afirmațiilor care ar descrie o persoană cu aversiunea la risc și afirmațiile care descriu o persoană iubitoare de risc de la întrebarea Q2.
+
+#### Pe baza cunoștințelor acumulate până acum, faceți o descriere a propriului profil de decident din cele două categorii (aversiune la risc sau cu înclinație la risc), faceți propria selecție a variabilelor și justificați soluția aleasă.
+
+#### Comentați încadrarea voastră și a celor care două persoane selectate într-una dintre cele două categorii. Sistemul de gândire determinat și de caracteristicile persoanelor.
+
+### Profil Aversiune
+
+Am ales intrebarile b, e, f si g deoarece consider ca o persoana cu aversiune la risc este o persoana care se ingrijoreaza prea mult, este serioasa, atenta la detalii si care respecta termenele limita.
+
+O persoana care se ingrijoreaza prea mult poate avea o reticenta de a-si asuma riscuri din cauza fricii de potentiale rezultate negative.
+
+Seriozitatea unei persoane poate implica o abordare a vietii mai precauta si mai aversa fata de risc.
+
+Persoanele orientate spre detalii tind sa analizeze situatiile mai mult, ceea ce le poate determina sa se gandeasca prea mult la potentialele riscuri si sa devina precauti in luarea deciziilor.
+
+Persoanele ce respecta termenele limita au o preferinta pentru structura si predictabilitate, ce ar putea fi asociate cu o capacitate scazuta de a-si asuma riscuri.
+
+```{r}
+profil_aversiune <- date_tema1 %>% 
+  filter(!is.na(Q2B), !is.na(Q2E), !is.na(Q2F), !is.na(Q2G)) %>% 
+  select(Q2B, Q2E, Q2F, Q2G)
+cor(profil_aversiune)
+
+```
+
+#### *Variabilele luate in calcul sunt corelate pozitiv, cea mai mare valoare a fost inregistrata intre variabilele Q2G si Q2F, de 0.4039, ceea ce semnifica faptul ca o persoana care este atenta la detalii respecta termenele limita. Urmatoarea valoare a fost inregistrata intre variabilele Q2E si Q2G, semnificand faptul ca o persoana serioasa tinde sa respecte termenele limita.*
+
+### Mediile variabilelor luate in calcul in profilul de aversiune la risc
+
+```{r}
+profil_aversiune %>% 
+  filter(!is.na(Q2B), !is.na(Q2E), !is.na(Q2F), !is.na(Q2G)) %>% 
+  summarise(medieQ2B = mean(Q2B),
+            medieQ2E = mean(Q2E), 
+            medieQ2F = mean(Q2F),
+            medieQ2G = mean(Q2G))
+
+  
+```
+
+### Media mediilor
+
+```{r}
+profil_aversiune %>% 
+  filter(!is.na(Q2B), !is.na(Q2E), !is.na(Q2F), !is.na(Q2G)) %>%
+  summarise(medieAversiune = (mean(Q2B)+mean(Q2E)+mean(Q2F)+mean(Q2G))/4)
+
+```
+
+#### *Media notelor acordate de decidenti in cadrul variabilelor selectate in profilul de aversiune este de 7.584091, ceea ce semnifica faptul ca au fost acordate note care i-ar putea caracteriza drept aversi la risc.*
+
+### Profil inclinatie
+
+Am ales variabilele d, j, k si h, deoarece consider ca o persoana cu inclinatie la risc este o persoana care munceste foarte mult, careia ii place sa intalneasca oameni noi, este fericita si careia ii place sa studieze lucruri noi.
+
+Desi o persoana care munceste foarte mult nu poate implica direct o tendinta de a-si asuma riscuri, dar ar putea sugera o persoana hotarata si dispusa sa-si asume riscuri pentru a-si atinge obiectivele.
+
+Persoanele carora le place sa intalneasca oameni noi pot fi deschise catre noi experiente si sunt dispuse sa isi asume riscuri in situatii sociale.
+
+Nivelul de fericire al oamenilor poate fi asociat cu dorinta de a-si asuma riscuri si de a accepta incertitudinea.
+
+O persoana careia ii place sa invete lucruri noi poate avea o natura curioasa si aventuroasa, ceea ce l-ar putea determina sa-si asume riscuri in cautarea cunostintelor si experientelor.
+
+```{r}
+profil_inclinatie <- date_tema1 %>% 
+  filter(!is.na(Q2D), !is.na(Q2J), !is.na(Q2K), !is.na(Q2H)) %>% 
+  select(Q2D, Q2J, Q2K, Q2H)
+cor(profil_inclinatie)
+```
+
+#### *Variabilele luate in calcul sunt corelate pozitiv, cea mai mare valoare inregistrandu-se intre Q2K si Q2J, de 0.4407758, ceea ce indica faptul ca o persoana careia ii place sa cunoasca oameni noi, va avea o placere pentru a studia lucruri noi. Urmatoarea valoare, de 0.3676520, a fost inregistrata intre Q2J si Q2D, ceea ce semnifica faptul ca o persoana care munceste foarte mult va avea o tendinta de placere in a intalni oameni noi.*
+
+### Mediile variabilelor luate in calcul in profilul de inclinatie la risc
+
+```{r}
+profil_inclinatie %>% 
+  filter(!is.na(Q2D), !is.na(Q2J), !is.na(Q2K), !is.na(Q2H)) %>% 
+  summarise(medieQ2D = mean(Q2D),
+            medieQ2J = mean(Q2J), 
+            medieQ2K = mean(Q2K),
+            medieQ2H = mean(Q2H))
+
+```
+
+### Media mediilor
+
+```{r}
+profil_inclinatie %>% 
+  filter(!is.na(Q2D), !is.na(Q2J), !is.na(Q2K), !is.na(Q2H)) %>%
+  summarise(medieAversiune = (mean(Q2D)+mean(Q2J)+mean(Q2K)+mean(Q2H))/4)
+
+```
+
+#### *Media notelor acordate de decidenti in cadrul variabilelor selectate in profilul de aversiune este de 7.602273, ceea ce semnifica faptul ca au fost acordate note care ar putea caracteriza decidentii cu inclinatie la risc.*
+
+### Incadrarea decidentilor mei intr-un profil fata de risc
+
+```{r}
+incadrare_aversiune <- date_tema1 %>% 
+  filter(!is.na(Q2B), !is.na(Q2E), !is.na(Q2F), !is.na(Q2G)) %>%
+  select(ID, Q2B, Q2E, Q2F, Q2G) %>% 
+  filter(ID=="AO" | ID=="AO01" | ID=="AO02" )
+#View(incadrare_aversiune)
+incadrare_inclinatie <- date_tema1 %>% 
+  filter(!is.na(Q2D), !is.na(Q2J), !is.na(Q2K), !is.na(Q2H)) %>%
+  select(ID, Q2D, Q2J, Q2K, Q2H) %>% 
+  filter(ID=="AO" | ID=="AO01" | ID=="AO02" )
+#View(incadrare_inclinatie)
+
+
+```
+
+#### *Am observat faptul ca decidentii se incadreaza in profilul persoanelor cu aversiune fata de risc, deoarece au fost acordate note mult mai mari la intrebarile specifice acestui profil. Media notelor acordate de decidenti in cadrul variabilelor selectate in profilul de aversiune este de 7.602273, ceea ce semnifica faptul ca au fost acordate note care ar putea caracteriza decidentii cu inclinatie la risc.*
+
+#### Comentați corelațiile existente între variabilele de la Q2. Ce observați? Faceți aceeași analiză pentru variabilele alese de voi. Comentați și stabiliți dacă păstrați sau nu variabilele alese inițial.
+
+```{r}
+ggcorrplot(corr=cor(na.omit(date_tema1[,10:23])), hc.order=TRUE, method = c("square"), lab=TRUE)
+```
+
+#### *Putem observa ca nu se stabilesc corelatii foarte puternice, cea mai mare valoare inregistrata fiind de 0.58, intre Q2I si Q2J, indicand o corelatie intre persoanele carora le place sa vorbeasca si cele carora le place sa intalneasca oameni noi.*
+
+#### *Identificam existenta unor corelatii negative, cea mai mica valoare inregistrata fiind de -0.27, intre Q2I si Q2M, indicand o corelatie negativa intre persoanele carora le place sa vorbeasca si cele care sunt calme.*
+
+#### *Dupa cum am observat in graficul tuturor corelatiilor, nu au fost identificate corelatii atat de puternice, asa ca nu vom face modificari asupra variabilelor selectate in cadrul profilurilor de aversiune, respectiv inclinatie la risc.*
+
+#### Analizați coeficientul propus de voi – puteți compara cu sistemul de gândire testat. Comparați tipul de aversiune determinat cu gradul de dependență față de brandurile de lux.
+
+#### Propunem un coeficient de aversiune care sa cuprinda intrebarile Q2B, Q2E, Q2F si Q2G.
+
+```{r}
+date_tema1 = date_tema1 %>%
+  mutate(coef_aversiune = 0.4*Q2B + 0.3*Q2E + 0.1*Q2F + 0.2*Q2G)
+# Analizam noul coeficient
+date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=coef_aversiune),color="purple", fill = "lightblue",na.rm = TRUE, binwidth = 0.6)+
+  labs(x="Coeficient Aversiune")
+
+```
+
+#### *Asimetrie la stanga, cele mai multe valori sunt de 6 si 9*
+
+#### Putem analiza coeficientul de aversiune impreuna cu sistemul de gandire testat dupa Kahneman
+
+```{r}
+date_tema1 %>% 
+  filter (!is.na(Test_sistemKT), !is.na(coef_aversiune)) %>%
+  ggplot(aes(x=coef_aversiune, color=Test_sistemKT, fill = Test_sistemKT))+
+  geom_histogram(binwidth = 3, position = "identity")+
+  labs(x="Coeficientul de aversiune si sistemul de gandire")
+```
+
+#### *Observam ca decidentii ce un coeficient de aversiune la risc cu o valoare ridicata, au fost clasificati in sistemul de gandire slow, conform testului lui Kahneman.*
+
+#### Împărțiți decidenții în funcție de nota dată în trei categorii: dependență mare, dependență medie și dependență mică (împărțirea în categorii vă aparține). Afișați. Ce observați?
+
+#### Analog, construiți categoriile corespunzătoare coeficientului vostru. Plasați decidenții aleși de voi în aceste categorii, extrageți eșantioanele corespunzătoare încadrării pe tipuri de dependență de branduri de lux, comparați și comentați cum vă poziționați față de eșantioanele respective. (Grafic pentru afișarea decidenților.)
+
+#### Analizam Q3 si identificam categoriile de raspuns
+
+```{r}
+date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q3),color="purple", fill = "lightpink3",na.rm = TRUE, binwidth = 2)+
+  labs(x="Dependenta de branduri")
+```
+
+#### Dependenta mica - 0-3
+
+#### Dependenta medie - 3-8
+
+#### Dependenta mare - peste 8
+
+```{r}
+date_tema1<-date_tema1 %>%
+  mutate(dependenta_brand= case_when(
+    Q3 <= 3 ~"Dependenta Mica",
+    Q3 > 3 & Q3 < 8 ~ "Dependenta Medie",
+    Q3 >= 8 ~ "Dependenta Mare"))
+# Comparam coeficientul de aversiune cu gradul de dependenta brand
+date_tema1 %>%
+  group_by(coef_aversiune, dependenta_brand)%>%
+  dplyr::summarize(n=n())
+
+# Grafic
+date_tema1 %>% 
+  filter (!is.na(dependenta_brand), !is.na(coef_aversiune)) %>%
+  group_by(coef_aversiune, dependenta_brand)%>%
+  ggplot(aes(x=coef_aversiune, color=dependenta_brand, fill = dependenta_brand))+
+  geom_histogram(binwidth = 0.2, position = "identity")+
+  labs(x="Coeficient de aversiune", y = "Dependenta de branduri")
+```
+
+#### *Din grafic, se observa ca respondentii ce prezinta o aversiune mare la risc, au o dependenta mica fata de branduri.*
+
+#### Definim categorii de aversiune la risc pentru coeficientul creat
+
+```{r}
+
+date_tema1<-date_tema1 %>%
+  mutate(nivel_aversiune= case_when(
+    coef_aversiune<=5.5 ~"Aversiune Mica",
+    coef_aversiune>5.5 & coef_aversiune<7.5 ~ "Aversiune Medie",
+    coef_aversiune>=7.5 & coef_aversiune<9.5 ~ "Aversiune Mare",
+    coef_aversiune>9.5 ~ "Aversiune extrema"
+  ))
+
+date_tema1 %>% 
+  filter(!is.na(dependenta_brand),!is.na(nivel_aversiune)) %>%
+  group_by(nivel_aversiune, dependenta_brand) %>% 
+  dplyr::summarise(n=n()) %>% 
+  ggplot()+
+  geom_col(aes(x=nivel_aversiune, y=n, fill=dependenta_brand))+
+  scale_fill_brewer(palette = "RdPu")
+```
+
+#### Identificam cei 3 decidenti
+
+```{r}
+date_tema1 %>%
+  select(ID, coef_aversiune, dependenta_brand, nivel_aversiune)%>%
+  filter(ID=="AO" | ID=="AO01" | ID=="AO02")
+```
+
+#### *Observam ca primul decident (AO) prezinta o dependenta medie fata de brand-uri si un nivel mediu de aversiune la risc. Urmatorii doi decidenti (AO01 si AO02) prezinta dependenta mica pentru brand-uri si un nivel mare de aversiune fata de risc.*
+
+#### Analizați răspunsurile date la întrebările Q4a și Q4b, furnizați barchart-uri, comentați. Comentați pentru decidenții aleși de voi.
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q4a), !is.na(Q4b))%>%
+  group_by(Q4a, Q4b)%>%
+  dplyr::summarise(n=n())
+
+```
+
+#### Q4a - brand detinut
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q4a))%>%
+  group_by(Q4a)%>%
+  dplyr::summarise(n=n())%>%
+  ggplot(aes(x=reorder(Q4a, n), y=n))+
+  geom_col(fill="pink")+
+  labs(x="Q4a - Brand detinut", y="Nr respondenti")+
+  coord_flip()
+```
+
+#### Q4b - brand dorit
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q4b)) %>%
+  group_by(Q4b) %>%
+  dplyr::summarise(n=n()) %>%
+  ggplot(aes(x=reorder(Q4b,n), y=n))+
+  geom_col(fill="magenta3")+
+  labs(x="Q4b - Brand dorit", y="Nr respondenti")+
+  coord_flip()
+```
+
+#### Grafic in care sa vedem ce brand isi doresc respondentii in functie de raspunsul dat la brand detinut
+
+```{r}
+date_tema1 %>% 
+  filter(Q4a!="N/A", Q4b!="N/A") %>% 
+  group_by(Q4a, Q4b) %>% 
+  dplyr::summarise(n=n()) %>% 
+  ggplot()+
+  geom_col(aes(x=reorder(Q4a, n), 
+               y=n, 
+               fill=Q4b))+
+  coord_flip()+
+  geom_text(aes(x=Q4a, 
+                y=n, 
+                label=n),
+            size=4, 
+            hjust=-0.5)+
+  labs(x= "Brand detinut", 
+       y= "Numar studenti ", 
+       caption= "Experiment CEC 2023", 
+       title="Brandul dorit si brandul detinut")
+```
+
+#### *Se observa faptul ca cei mai multi respondenti nu detin niciun brand de lux. Dintre respondentii care detin brand-uri de lux, cei mai multi detin Dior, Armani, YSL si Versace.*
+
+#### *De asemenea, remarcam faptul ca cei mai multi respondenti isi doresc sa detina brand-ul Dior, urmat de Chanel, Rolex, Prada, Mercedes, Louis Vuitton.*
+
+#### *Dintre respondentii ce nu detin niciun brand, cei mai multi si-ar dori sa detina Armani, Burberry, Cartier, Chanel, Gucci, Louis Vuitton, Rolex.*
+
+#### *Dintre cei care detin YSL, 4 isi doresc Chanel, 1 Mercedes si Prada.*
+
+#### *Dintre cei care detin Dior, cei mai multi isi doresc Prada.*
+
+#### *Dintre cei care detin Armani, cei mai multi isi doresc Rolex.*
+
+#### *Dintre cei care detin Versace, cei mai multi isi doresc Rolex si Mercedes.*
+
+#### Q5 și Q6:
+
+#### Determinați câți dintre respondenți sunt mai influențați de reclame decât de recomandări comparând cele două note acordate de către respondenți.
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q5), !is.na(Q6)) %>% 
+  select(Q5, Q6) %>% 
+  summary()
+```
+
+#### *Observam ca respondentii au acordat note mai mari pentru recomandari, decat pentru reclame. Media notelor pentru recomandari (Q6) este de 6.845, iar media notelor pentru reclame (Q5) este de 5.082.*
+
+#### *Prin urmare, esantionul nostru exprima o incredere mai mare fata de recomandari decat fata de reclame.*
+
+#### Analizam Q6 - Grafic
+
+```{r}
+date_tema1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q6),
+                 color = "purple",
+                 fill="orchid3",
+                 na.rm =TRUE,
+                 binwidth=1)+
+  labs(x="Q6 - dependenta de recomandari")
+
+```
+
+#### *Avem asimetrie la stanga, cele mai multe note sunt 6 si 9.*
+
+#### Comparați tipul de aversiunea la risc al respondenților cu gradul de dependență față de reclame. Ce observați? Cum puteți caracteriza respondenții care au gradul de dependență față de reclame mai mare decât 5?
+
+```{r}
+date_tema1 <- date_tema1 %>%
+  filter(Q6!="N/A") %>%
+  mutate(recomandari=case_when(
+    Q6 < 6 ~ "dependenta recomandari mica",
+    Q6 >=6 & Q6 <8 ~ "dependenta recomandari medie",
+    Q6 >= 8 ~ "dependenta recomandari mare"))
+date_tema1 %>% 
+  group_by(recomandari) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *46 de respondenti se incadreaza in clasa cu dependenta mare de recomandari*
+
+#### *44 de respondenti se incadreaza in clasa cu dependenta medie de recomandari*
+
+#### *20 de respondenti se incadreaza in clasa cu dependenta mica de recomandari*
+
+#### Comparam raspunsurile obtinute pt nivelul nostru de aversiune si aceasta dependenta de recomandari.
+
+```{r}
+date_tema1 %>% 
+  filter(nivel_aversiune!="N/A", recomandari!="N/A") %>% 
+  group_by(nivel_aversiune, recomandari) %>% 
+  dplyr::summarise(n=n())
+
+```
+
+#### Grafic
+
+```{r}
+
+date_tema1 %>% 
+  filter(nivel_aversiune!="N/A", recomandari!="N/A") %>% 
+  group_by(nivel_aversiune, recomandari) %>% 
+  dplyr::summarise(n=n()) %>% 
+  ggplot()+
+  geom_col(aes(x=reorder(nivel_aversiune, n),
+               y=n,
+               fill=recomandari))+
+  scale_fill_brewer(palette="Set3")+
+  labs(x= "Nivel aversiune si recomandari", 
+       y= "Numar studenti ", 
+       caption= "Experiment CEC 2023", 
+       title="Nivelul de aversiune stabilit de noi si dependenta de recomandari")
+```
+
+#### *Observam ca cei mai multi respondenti au o dependenta mare de recomandari si o aversiune mare fata de risc, acestia nefiind dispusi sa isi asume riscuri si bazandu-se mai mult pe recomandari.*
+
+#### Afisam respondentii care au dat note mai mari la Q5 decat la Q6
+
+```{r}
+date_tema1 %>% 
+  select(ID, Q5, Q6) %>% 
+  filter(!is.na(Q5), !is.na(Q6)) %>% 
+  filter(Q5 >Q6)
+```
+
+#### Cum putem caracteriza respondentii care au gradul de dependenta fata de reclama mai mare de 5?
+
+```{r}
+date_tema1 %>% 
+  select(ID, Q5, Q6, recomandari, Test_sistemgandire) %>% 
+  filter(recomandari %in% c("dependenta recomandari mica", "dependenta recomandari medie", "dependenta recomandari mare"))
+```
+
+#### *6 respondenti pun accent mai mult pe reclame decat pe recomandari*
+
+#### *Majoritatea respondentilor ce au o dependenta mica fata de recomandari, au un sistem de gandire slow.*
+
+#### Afisam aceste informatii pentru cei 3 decidenti
+
+```{r}
+date_tema1 %>% 
+  select(ID, Q5, Q6, recomandari, Test_sistemgandire) %>% 
+  filter(ID=="AO"| ID=="AO01"| ID=="AO02") %>% 
+  filter(recomandari %in% c("dependenta recomandari mare", "dependenta recomandari medie", "dependenta recomandari mica"))
+```
+
+#### *Conform raspunsurilor acordate de decidentii mei, doi dintre ei (AO si AO02) au o dependenta mare de recomandari si un sistem de gandire fast, ceea ce poate semnifica faptul ca sunt niste persoane care se lasa destul de usor influentate de recomandari, fara a analiza situatia in prealabil. Cat despre decidentul AO01, lucrurile sunt diferite, acesta avand o dependenta medie fata de recomandari si un sistem de gandire slow, deci nu este o persoana atat de usor influentata de recomandari si tinde sa analizeze situatia mai intai.*
+
+#### Analizați răspunsurile la întrebarea Q7 (nivelul de fericire) si comentați plasarea voastră și a decidenților aleși față de media eșantionului.
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q7)) %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q7),color="purple", fill = "hotpink",na.rm = TRUE, binwidth = 2)+
+  labs(x="Nivel de fericire")
+```
+
+#### *Avem o distributie normala, cele mai multe note sunt de 6 si 8.*
+
+#### Calculam media nivelului de fericire
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q7)) %>% 
+  dplyr::summarise(medie_fericire = mean(Q7)) 
+
+```
+
+#### *Media nivelului de fericire are o valoare de 6.636364*
+
+#### Afisam nivelul de fericire pentru cei 3 decidenti
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q7)) %>% 
+  filter(ID %in% c("AO", "AO01", "AO02")) %>%
+  select (ID, nivel_fericire = Q7)
+```
+
+#### *Observam ca decidentii AO01 si AO02 au un nivel de fericire mai mic decat media esantionului, AO02 prezinta o abatere destul de mare fata de medie, in valoare de 3.636364. Decidentul AO are un nivel de fericire mai mare fata de valoarea mediei, 7>6.636364.*
+
+#### Afișați pe un grafic ce branduri vă interesează (Q81 și Q82). Analizați răspunsurile la Q81 împreună cu Q81_produs. Ce observați? Analog, analizați răspunsurile la Q82 și Q82_produs. Ce observăm?
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q82)) %>% 
+  group_by(Q82) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *Cei mai multi respondenti ar cumpara Mercedes, Audi si BMW.*
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q82))%>%
+  group_by(Q82) %>% 
+  dplyr::summarise(n=n()) %>% 
+  ggplot(aes(x=reorder(Q82, n),y = n))+
+  geom_col(fill = "aquamarine3")+
+  coord_flip()
+```
+
+#### Furnizam un grafic pentru Q81 si Q81_produs
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q81), !is.na(Q81_produs))%>%
+  mutate(Q81=replace(Q81, Q81=="nu", "Nu")) %>% 
+  group_by(Q81, Q81_produs) %>% 
+  dplyr::summarise(n=n()) %>% 
+  ggplot(aes(x=reorder(Q81, n),y = n, fill = Q81_produs))+
+  geom_col()+
+  coord_flip()
+```
+
+#### *Dintre respondentii ce si-ar vinde un obiect personal, ar cumpara bunuri de la brand-uri precum Casablanca, Chanel, Dior, Gucci, Apple, Prada, Rolex si Xiaomi.*
+
+#### Analizam Q81 si Q81_produs pt cei 3 decidenti
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q81), !is.na(Q81_produs))%>%
+  group_by(Q81, Q81_produs) %>% 
+  filter(ID %in% c("AO", "AO01", "AO02")) %>%
+  select (ID, Q81, Q81_produs)
+```
+
+#### *Doar unul dintre cei 3 decidenti ar renunta la un obiect personal si si-ar cumpara Chanel, ceilalti 2 decidenti nu si-ar vinde un obiect personal pentru 1000 de euro.*
+
+#### Grafic Q82 si Q82_produs
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q82), !is.na(Q82_produs))%>%
+  group_by(Q82, Q82_produs) %>% 
+  dplyr::summarise(n=n()) %>% 
+  ggplot(aes(x=reorder(Q82, n),y = n, fill = Q82_produs))+
+  geom_col()+
+  coord_flip()
+```
+
+#### *Daca ar avea la dispozitie suma de 200.000 de euro, cei mai multi respondenti si-ar achizitiona brand-uri precum Mercedes, BMW, Audi, Tesla si Porsche.*
+
+#### Analizam Q82 si Q82_produs pentru cei 3 decidenti
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q82), !is.na(Q82_produs))%>%
+  group_by(Q82, Q82_produs) %>% 
+  filter(ID %in% c("AO", "AO01", "AO02")) %>%
+  select (ID, Q82, Q82_produs)
+```
+
+#### Cu suma de 200.000 de euro, cei 3 decidenti ar opta pentru masini, precum majoritatea decidentilor, alegand brand-uri precum Mercedes, Audi si Porsche.
+
+#### Analiza Q9.1 - nivelul de dezamagire al unei persoane apropiate
+
+```{r}
+date_tema1 %>% 
+  select(Q9.1) %>% 
+  group_by(Q9.1) %>% 
+  summary()
+```
+
+#### N*ivelul de dezamagire are o medie de 5.873.*
+
+#### Nivelul de dezamagire al celor 3 decidenti
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q9.1)) %>% 
+  filter(ID %in% c("AO", "AO01", "AO02")) %>%
+  select (ID, Q9.1)
+```
+
+#### *Dintre cei 3 decidenti, doi au nivelul de dezamagire mai mic decat media esantionului (4\<5.873 si 2\<5.873), iar celalalt decident are un nivel de dezamagire mai mare decat media esantionului(7\>5.873).*
+
+#### *Analizam Q9.1 (*nivelul de dezamagire al unei persoane apropiate) si Q9.2 (investitia in rolul de manager)
+
+```{r}
+date_tema1 %>% 
+  filter(!is.na(Q9.1)) %>% 
+  ggplot()+
+  geom_histogram(aes(x=Q9.1),color="purple", fill = "plum3",na.rm = TRUE, binwidth = 1)+
+  labs(x="Q9.1 - nivel de dezamagire")
+```
+
+#### *Cele mai multe note se afla in intervalul 5-8.*
+
+#### In ce brand-uri investesc respondentii, aflandu-se in pozitia de manager
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q9.2))%>%
+  group_by(Q9.2) %>% 
+  dplyr::summarise(n=n()) %>% 
+  ggplot(aes(x=reorder(Q9.2, n),y = n))+
+  geom_col(fill = "maroon2")+
+  geom_text(aes(y = n, label = n), size = 2, hjust = -0.5)+
+  coord_flip()
+```
+
+#### *Cei mai multi respondenti (40) investesc in Rolex, 11 in Tiffany si Chanel, 9 in Dior, iar in brand-uri precum Victoria's Secret, Versace, Swarovski, Off White, Mercedes si Burberry.*
+
+#### In ce brand-uri aleg sa investeasca cei 3 decidenti
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q9.2))%>%
+  filter(ID %in% c("AO", "AO01", "AO02")) %>%
+  select (ID, Q9.2)
+```
+
+#### *AO alege sa investeasca in Chanel, deoarece reprezinta un brand popular, iar ceilalti doi decidenti (AO01 si AO02) aleg sa investeasca in Rolex, precum majoritatea decidentilor.*
+
+#### Identificarea brandurilor aflate in topul alegerilor respondentilor
+
+#### Analizați răspunsurile date la Q4b) – brand dorit. Pe baza analizei brandurilor alese la Q4b) – brand dorit, identificați respondenții care au dat note mai mari de 5 pentru brandurile care ocupă primele 4 poziții în topul alegerilor.
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q4b)) %>%
+  group_by(Q4b) %>%
+  dplyr::summarise(n=n()) %>%
+  ggplot(aes(x=reorder(Q4b,n), y=n))+
+  geom_col(fill="mediumslateblue")+
+  labs(x="Q4b - Brand dorit", y="Nr respondenti")+
+  coord_flip()
+```
+
+#### *Top 4 branduri: Dior, Chanel, Rolex, Prada*
+
+#### Afisam respondentii care au acordat note mai mari de 5 pt primele 4 pozitii
+
+```{r}
+date_tema1 %>% 
+  filter(Q4b %in% c("Dior","Chanel","Rolex","Prada")) %>% 
+  filter(!is.na(Dior), !is.na(Chanel), !is.na(Rolex), !is.na(Prada)) %>% 
+  filter(Dior >= 5 | Chanel >= 5 | Rolex >= 5 | Prada >= 5 ) %>%
+  ggplot(aes(x = ID, y = Dior, color = Chanel, size = Rolex))+
+  geom_point()
+```
+
+#### Pe baza analizei brandurilor alese la Q8.2 – identificați respondenții care au ales brandurile care ocupă primele 4 poziții în topul alegerilor.
+
+#### Identificam top 4 branduri
+
+```{r}
+ date_tema1 %>%
+  filter(!is.na(Q82))%>%
+  group_by(Q82) %>% 
+  dplyr::summarise(n=n()) %>% 
+  ggplot(aes(x=reorder(Q82, n),y = n))+
+  geom_col(fill = "violet")+
+  coord_flip()
+```
+
+#### *Top 4 branduri: Mercedes, Audi, BMW, Tesla*
+
+#### Afisam nr de respondenti care au ales branduri din top 4
+
+```{r}
+date_tema1 %>% 
+  filter(Q82 %in% c("Mercedes","Audi","BMW","Tesla")) %>%  
+  filter(!is.na(Q82)) %>% 
+  group_by(Q82) %>% 
+  dplyr::summarise(n=n()) 
+```
+
+#### *28 de persoane au ales Mercedes, 17 au ales Audi, 15 au ales BMW, iar 10 au ales Tesla.*
+
+#### Ce alegeri au făcut la Q8.2 respondenții al căror nivel de fericire(Q7) este mai mare decât media?
+
+```{r}
+date_tema1 %>% 
+  select(ID, Q7, Q82) %>% 
+  filter(!is.na(ID), !is.na(Q7), !is.na(Q82)) %>% 
+  filter(Q7 > mean(Q7)) %>% 
+  group_by(Q7, Q82) %>% 
+  dplyr::summarise(n=n())
+```
+
+#### *Cei care au un nivel de fericire mai mare decat media au ales branduri precum Mercedes, Audi, Tesla, Porsche, BMW.*
+
+#### Aranjați observațiile în ordine crescătoare, după notele date brandurilor aflate pe primele 4 poziții în opțiunile exprimate la Q9.2.
+
+#### Identificam top 4 branduri
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Q9.2))%>%
+  group_by(Q9.2) %>% 
+  dplyr::summarise(n=n()) %>% 
+  ggplot(aes(x=reorder(Q9.2, n),y = n))+
+  geom_col(fill = "springgreen2")+
+  coord_flip()
+```
+
+#### *Top 4 branduri: Rolex, Chanel, Dior, Hermes.*
+
+```{r}
+gf_Rolex <- date_tema1 %>%
+  select(ID, Q9.2, Rolex, Chanel, Dior, Hermes) %>% 
+  filter(Q9.2 %in% c("Rolex","Chanel", "Dior", "Hermes")) %>% 
+  filter(!is.na(Rolex),  !is.na(Chanel), !is.na(Dior), !is.na(Hermes) )%>%
+  group_by(Q9.2) %>% 
+  arrange(Rolex) %>%
+  ggplot(aes(x = Rolex))+
+  geom_bar(fill = "cadetblue2", color = "azure")
+
+gf_Chanel <- date_tema1 %>%
+  select(ID, Q9.2, Rolex, Chanel, Dior, Hermes) %>% 
+  filter(Q9.2 %in% c("Rolex","Chanel", "Dior", "Hermes")) %>% 
+  filter(!is.na(Rolex),  !is.na(Chanel), !is.na(Dior), !is.na(Hermes) )%>%
+  group_by(Q9.2) %>% 
+  arrange(Chanel) %>%
+  ggplot(aes(x = Chanel))+
+  geom_bar(fill = "slateblue1", color = "azure")
+
+gf_Dior <- date_tema1 %>%
+  select(ID, Q9.2, Rolex, Chanel, Dior, Hermes) %>% 
+  filter(Q9.2 %in% c("Rolex","Chanel", "Dior", "Hermes")) %>% 
+  filter(!is.na(Rolex),  !is.na(Chanel), !is.na(Dior), !is.na(Hermes) )%>%
+  group_by(Q9.2) %>% 
+  arrange(Dior) %>%
+  ggplot(aes(x = Dior))+
+  geom_bar(fill = "orchid1", color = "azure")
+
+gf_Hermes <- date_tema1 %>%
+  select(ID, Q9.2, Rolex, Chanel, Dior, Hermes) %>% 
+  filter(Q9.2 %in% c("Rolex","Chanel", "Dior", "Hermes")) %>% 
+  filter(!is.na(Rolex),  !is.na(Chanel), !is.na(Dior), !is.na(Hermes) )%>%
+  group_by(Q9.2) %>% 
+  arrange(Hermes) %>%
+  ggplot(aes(x = Hermes))+
+  geom_bar(fill = "palegreen", color = "azure")
+
+ggarrange(gf_Rolex,gf_Chanel, gf_Dior,gf_Hermes, nrow=2, ncol = 3)
+```
+
+#### Calculați media notelor acordate la Q10 pentru primele 4 branduri selectate la Q9.2.
+
+```{r}
+date_tema1 %>%
+  select(ID, Q9.2, Rolex, Chanel, Dior, Hermes) %>% 
+  filter(Q9.2 %in% c("Rolex","Chanel", "Dior","Hermes")) %>% 
+  filter(!is.na(Rolex), !is.na(Hermes), !is.na(Chanel), !is.na(Dior))%>%
+  group_by(Q9.2) %>%
+  summarise(mediaRolex = mean(Rolex),
+            mediaChanel = mean(Chanel),
+            mediaDior = mean(Dior),
+            mediaHermes = mean(Hermes))
+```
+
+#### *Cea mai mare medie a fost inregistrata de brandul Dior, de 7.88, urmata de Chanel, cu o valoare de 7.72. Rolex are o medie de 7.69, urmata de Hermes, cu o valoare a mediei de 7.12.*
+
+#### Afișați ce note au dat respondenții aleși de voi (inclusiv voi) pentru cele 4 branduri și media acestora.
+
+```{r}
+date_tema1 %>%
+  select(ID, Rolex, Dior, Chanel, Hermes) %>% 
+  filter(ID=="AO" | ID=="AO01" | ID=="AO02") %>%
+  filter(!is.na(Rolex), !is.na(Dior), !is.na(Chanel),!is.na(Hermes))%>%
+  summarise(ID, Rolex, Dior, Chanel, Hermes,
+            medie_note_branduri = (Rolex+Dior+Chanel+Hermes)/5)
+```
+
+#### *Media notelor acordate de AO este de 6.8, in timp ce media notelor acordate de AO01 si AO02 este de 6.6.*
+
+#### Calculați media notelor acordate tuturor brandurilor de la Q10 și stabiliți un clasament al acestora.
+
+```{r}
+medie_branduri <- date_tema1 %>%
+  select(Rolex, Dior, Louis_Vuitton, Balenciaga, Chanel, Hermes, Armani, Gucci, Prada, Omega) %>% 
+  filter(!is.na(Rolex), !is.na(Dior), !is.na(Louis_Vuitton), !is.na(Balenciaga), !is.na(Chanel), !is.na(Hermes), !is.na(Armani), !is.na(Gucci), !is.na(Prada), !is.na(Omega))%>%
+  dplyr::summarise(across(where(is.numeric),~mean(.x, na.rm = TRUE)))
+
+t(medie_branduri)
+```
+
+#### Clasament: Dior, Rolex, Prada, Chanel, Hermes, Louis Vuitton, Armani, Gucci, Omega, Balenciaga.
+
+#### Reprezentați în același grafic notele date primelor 3 branduri și ultimelor 3 din top de către voi și decidenții voștri. Ce observați?
+
+```{r}
+date_tema1 %>%
+  filter(!is.na(Dior), !is.na(Rolex), !is.na(Prada), !is.na(Gucci), !is.na(Omega), !is.na(Balenciaga))%>%
+  select(ID, Dior,Rolex, Prada, Gucci,Omega, Balenciaga) %>% 
+  filter(ID=="AO" | ID=="AO01" | ID=="AO02") %>%
+  ggplot()+
+  geom_point(aes(x = ID, y = Dior, color = "Dior", size = Dior))+
+  geom_point(aes(x = ID, y = Rolex, color = "Rolex", size = Rolex))+
+  geom_point(aes(x = ID, y = Prada, color = "Prada", size = Prada))+
+  geom_point(aes(x = ID, y = Dior, color = "Gucci", size = Gucci))+
+  geom_point(aes(x = ID, y = Rolex, color = "Omega", size = Omega))+
+  geom_point(aes(x = ID, y = Prada, color = "Balenciaga", size = Balenciaga))+
+  labs(subtitle =  "Interes pentru primele 3 Branduri (Dior,Rolex, Prada) si ultimele 3 branduri (Gucci, Omega, Balenciaga)", x="ID", y = "primele si ultimele 3 branduri")
+```
+
+#### *Observam ca cei doi decidenti, AO01 si AO02 au acordat cele mai mari note pentru brand-ul Rolex, iar cele mai mici pentru Omega si Balenciaga. Celalalt decident, AO, a acordat cele mai mari note brand-urilor Dior, Prada si Balenciaga, iar cele mai mici note au fost acordate brand-urilor Rolex si Omega.*
+
+#### Analizați cum a evaluat o anumită persoană un brand, la momentul 0, față de valoarea medie a grupului. (Diverging Barcharts)
+
+#### Faceți aceste reprezentări pentru brandurile aflate pe primele 2 poziții și pentru cel aflat pe ultimul loc grupând respondenții după gradele de aversiune/înclinație la risc corespunzătoare persoanelor alese de voi.
+
+#### Analizam perceptiile respondentilor fata de toate brand-urile
+
+```{r}
+perceptii <- date_tema1 %>% 
+  filter(!is.na(Rolex),!is.na(Dior),!is.na(Louis_Vuitton),!is.na(Balenciaga),!is.na(Chanel),!is.na(Hermes),!is.na(Armani),!is.na(Gucci), !is.na(Prada), !is.na(Omega)) %>%
+  mutate(Medie_branduri=round((Rolex+Dior+Louis_Vuitton+Balenciaga+Chanel+Hermes+Armani+Gucci+Prada+Omega)/10,2)) %>% 
+  mutate(Standard_branduri=round(((Medie_branduri - mean(Medie_branduri))/sd(Medie_branduri)),2)) %>% 
+  mutate(Diferenta_brand=ifelse(Standard_branduri<0, "Below", "Above"))
+
+perceptii_ordonat_brand<-perceptii[order(perceptii$Diferenta_brand),]
+
+perceptii_ordonat_brand %>% 
+  filter(!is.na(ID)) %>% 
+  ggplot(aes(x = reorder(ID, Standard_branduri), y = Standard_branduri, label = Diferenta_brand))+
+  geom_bar(stat = "identity", aes(fill = Diferenta_brand))+
+  coord_flip()
+
+
+```
+
+#### Analizam perceptiile celor 3 decidenti
+
+```{r}
+perceptii %>%
+  select(ID, Diferenta_brand)%>%
+  filter(ID=="AO" | ID=="AO01" | ID=="AO02")
+```
+
+#### *Observam ca primii doi decidenti (AO si AO01) au evaluat brand-urile peste media esantionului, iar ultimul decident (AO02) a evaluat brand-urile sub media esantionului.*
+
+#### Analizam perceptiile celor 3 decidenti pentru primele doua brand-uri si ultimul: Dior, Rolex si Balenciaga
+
+#### Perceptii Dior
+
+```{r}
+perceptii_Dior <- date_tema1 %>% 
+  filter(!is.na(Dior)) %>%
+  mutate(sd_Dior=round(((Dior - mean(Dior))/sd(Dior)),2)) %>% 
+  mutate(Diferenta_brand=ifelse(sd_Dior<0, "Below", "Above"))
+
+perceptii_Dior_ordonat_brand<-perceptii_Dior[order(perceptii_Dior$Diferenta_brand),]
+
+perceptii_Dior_ordonat_brand %>% 
+  filter(!is.na(ID)) %>% 
+  ggplot(aes(x = reorder(ID, sd_Dior), y = sd_Dior, label = Diferenta_brand))+
+  geom_bar(stat = "identity", aes(fill = Diferenta_brand))+
+  coord_flip()
+  
+
+```
+
+#### Analizam perceptiile Dior pentru cei 3 decidenti
+
+```{r}
+perceptii_Dior %>% 
+  select(ID, Diferenta_brand) %>% 
+  filter(ID=="AO"| ID=="AO01"| ID=="AO02")
+
+```
+
+#### *Observam ca din cei 3 decidenti, primul decident(AO) a acordat o nota mai mare decat media esantionului, in timp ce ceilalti doi decidenti (AO01 si AO02) au acordat note mai mici decat media esantionului.*
+
+#### Perceptii Rolex
+
+```{r}
+perceptii_Rolex <- date_tema1 %>% 
+  filter(!is.na(Rolex)) %>%
+  mutate(sd_Rolex=round(((Rolex - mean(Rolex))/sd(Rolex)),2)) %>% 
+  mutate(Diferenta_brand=ifelse(sd_Rolex<0, "Below", "Above"))
+
+perceptii_Rolex_ordonat_brand<-perceptii_Rolex[order(perceptii_Rolex$Diferenta_brand),]
+
+perceptii_Rolex_ordonat_brand %>% 
+  filter(!is.na(ID)) %>% 
+  ggplot(aes(x = reorder(ID, sd_Rolex), y = sd_Rolex, label = Diferenta_brand))+
+  geom_bar(stat = "identity", aes(fill = Diferenta_brand))+
+  coord_flip()
+```
+
+#### Analizam perceptiile Rolex pentru cei 3 decidenti
+
+```{r}
+perceptii_Rolex %>% 
+  select(ID, Diferenta_brand) %>% 
+  filter(ID=="AO"| ID=="AO01"| ID=="AO02")
+```
+
+#### *Observam ca 2 dintre cei 3 decidenti (AO01 si AO02) au acordat note mai mari decat media esantionului, celalalt decident (AO) acordand o nota mai mica decat valoarea mediei esantionului.*
+
+#### Perceptii Balenciaga
+
+```{r}
+perceptii_Balenciaga <- date_tema1 %>% 
+  filter(!is.na(Balenciaga)) %>%
+  mutate(sd_Balenciaga=round(((Balenciaga - mean(Balenciaga))/sd(Balenciaga)),2)) %>% 
+  mutate(Diferenta_brand=ifelse(sd_Balenciaga<0, "Below", "Above"))
+
+perceptii_Balenciaga_ordonat_brand<-perceptii_Balenciaga[order(perceptii_Balenciaga$Diferenta_brand),]
+
+perceptii_Balenciaga_ordonat_brand %>% 
+  filter(!is.na(ID)) %>% 
+  ggplot(aes(x = reorder(ID, sd_Balenciaga), y = sd_Balenciaga, label = Diferenta_brand))+
+  geom_bar(stat = "identity", aes(fill = Diferenta_brand))+
+  coord_flip()
+```
+
+#### Analizam perceptiile Balenciaga pentru cei 3 decidenti
+
+```{r}
+perceptii_Balenciaga %>% 
+  select(ID, Diferenta_brand) %>% 
+  filter(ID=="AO"| ID=="AO01"| ID=="AO02")
+```
+
+#### *Observam ca doi dintre decidenti (AO01 si AO02) au acordat note mai mici decat media esantionului, iar un decident (AO) a acordat o nota mai mare decat media esantionului.*
+
+
+
